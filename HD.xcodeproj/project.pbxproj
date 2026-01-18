@@ -33,6 +33,7 @@
 		4FABD13B2F1D06C500BDDDCE /* Exceptions for "HD" folder in "HD" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Claude.MD,
 				Info.plist,
 			);
 			target = 4FABD1172F1D06C200BDDDCE /* HD */;
