@@ -12,7 +12,7 @@ We bouwen eerst de volledige app functioneel en compleet, met:
 * Volledig werkende UI
 
 ⚠️ **Design is in deze fase ondergeschikt**
-We gebruiken eenvoudige, neutrale SwiftUI-views en herbruikbare designcomponenten, zodat we later alleen componenten en styles hoeven aan te passen om de hele app te ontwerpen.
+We gebruiken eenvoudige, neutradle SwiftUI-views en herbruikbare designcomponenten, zodat we later alleen componenten en styles hoeven aan te passen om de hele app te ontwerpen.
 
 🧱 **Architectuur & Techniek**
 Hanteer deze uitgangspunten strikt:
