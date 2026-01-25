@@ -1,3 +1,10 @@
+//
+//  CardView.swift
+//  HD
+//
+//  Generic card container with design system styling
+//
+
 import SwiftUI
 
 struct CardView<Content: View>: View {
@@ -9,28 +16,31 @@ struct CardView<Content: View>: View {
 
     var body: some View {
         content
-            .padding()
-            .background(Color(.systemBackground))
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+            .padding(HDSpacing.cardPadding)
+            .background(HDColors.cardBackground)
+            .cornerRadius(HDSpacing.cornerRadiusMedium)
+            .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 4)
     }
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: HDSpacing.md) {
         CardView {
             Text("This is a card")
+                .foregroundColor(HDColors.forestGreen)
         }
 
         CardView {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: HDSpacing.xs) {
                 Text("Card Title")
                     .font(.headline)
+                    .foregroundColor(HDColors.forestGreen)
                 Text("Card content goes here")
                     .font(.body)
+                    .foregroundColor(HDColors.mutedGreen)
             }
         }
     }
-    .padding()
-    .background(Color(.systemGroupedBackground))
+    .padding(HDSpacing.horizontalMargin)
+    .background(HDColors.cream)
 }

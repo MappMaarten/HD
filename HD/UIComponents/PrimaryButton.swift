@@ -1,3 +1,10 @@
+//
+//  PrimaryButton.swift
+//  HD
+//
+//  Primary action button with design system styling
+//
+
 import SwiftUI
 
 struct PrimaryButton: View {
@@ -11,19 +18,20 @@ struct PrimaryButton: View {
                 .font(.body)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
-                .padding()
-                .background(isEnabled ? Color.accentColor : Color.gray.opacity(0.3))
+                .padding(HDSpacing.buttonPadding)
+                .background(isEnabled ? HDColors.forestGreen : HDColors.mutedGreen.opacity(0.3))
                 .foregroundColor(.white)
-                .cornerRadius(12)
+                .cornerRadius(HDSpacing.cornerRadiusMedium)
         }
         .disabled(!isEnabled)
     }
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: HDSpacing.md) {
         PrimaryButton(title: "Continue") {}
         PrimaryButton(title: "Disabled", action: {}, isEnabled: false)
     }
-    .padding()
+    .padding(HDSpacing.horizontalMargin)
+    .background(HDColors.cream)
 }

@@ -1,86 +1,103 @@
+//
+//  HikesOverviewView.swift
+//  HD
+//
+//  Redesigned hikes overview with dagboek (journal) styling
+//
+
 import SwiftUI
 import SwiftData
 
 struct HikesOverviewView: View {
     @Query(sort: \Hike.startTime, order: .reverse) private var allHikes: [Hike]
     @Environment(AppState.self) private var appState
-    @State private var viewModel = HikesOverviewViewModel()
     @State private var showNewHike = false
     @State private var showSettings = false
     @State private var showMap = false
-    @State private var showFilterSheet = false
+    @State private var showFilterPanel = false
     @State private var showActiveHikeAlert = false
+    @State private var searchText = ""
+    @State private var selectedTypes: Set<String> = []
+    @State private var sortOption: SortOption = .dateDescending
 
-    var displayedHikes: [Hike] {
-        viewModel.filteredAndSortedHikes(from: allHikes)
+    enum SortOption: String, CaseIterable {
+        case dateDescending = "Nieuwste eerst"
+        case dateAscending = "Oudste eerst"
+        case nameAscending = "Naam A-Z"
+        case nameDescending = "Naam Z-A"
     }
+
+    // MARK: - Filtered Hikes
+
+    private var filteredHikes: [Hike] {
+        var hikes = allHikes
+
+        // Filter by search text
+        if !searchText.isEmpty {
+            hikes = hikes.filter { hike in
+                hike.name.localizedCaseInsensitiveContains(searchText) ||
+                hike.type.localizedCaseInsensitiveContains(searchText) ||
+                (hike.startLocationName?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+
+        // Filter by selected types
+        if !selectedTypes.isEmpty {
+            hikes = hikes.filter { selectedTypes.contains($0.type) }
+        }
+
+        // Sort
+        switch sortOption {
+        case .dateDescending:
+            hikes.sort { $0.startTime > $1.startTime }
+        case .dateAscending:
+            hikes.sort { $0.startTime < $1.startTime }
+        case .nameAscending:
+            hikes.sort { $0.name.localizedCompare($1.name) == .orderedAscending }
+        case .nameDescending:
+            hikes.sort { $0.name.localizedCompare($1.name) == .orderedDescending }
+        }
+
+        return hikes
+    }
+
+    private var displayedHikesWithoutActive: [Hike] {
+        // For main list: exclude active hike (shown in banner)
+        filteredHikes.filter { $0.id != appState.activeHikeID }
+    }
+
+    private var currentActiveHike: Hike? {
+        guard let activeID = appState.activeHikeID else { return nil }
+        return allHikes.first { $0.id == activeID && $0.status == "inProgress" }
+    }
+
+    private var availableTypes: [String] {
+        Array(Set(allHikes.map { $0.type })).sorted()
+    }
+
+    // MARK: - Body
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                Group {
-                    if displayedHikes.isEmpty {
-                        if allHikes.isEmpty {
-                            emptyState
-                        } else {
-                            emptySearchState
-                        }
-                    } else {
-                        hikesList
+            ZStack {
+                HDColors.cream.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    customHeader
+                    titleSection
+
+                    if showFilterPanel {
+                        filterPanel
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                     }
+
+                    contentArea
                 }
+
+                // FAB overlay
+                fabOverlay
             }
-            .navigationTitle("Mijn Wandelingen")
-            .searchable(text: $viewModel.searchText, prompt: "Zoek wandelingen")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Menu {
-                        Picker("Sorteren", selection: $viewModel.sortOption) {
-                            ForEach(HikesOverviewViewModel.SortOption.allCases, id: \.self) { option in
-                                Text(option.rawValue).tag(option)
-                            }
-                        }
-
-                        Button {
-                            showFilterSheet = true
-                        } label: {
-                            Label("Filter op type", systemImage: "line.3.horizontal.decrease.circle")
-                        }
-                    } label: {
-                        Image(systemName: "slider.horizontal.3")
-                    }
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 16) {
-                        Button {
-                            showMap = true
-                        } label: {
-                            Image(systemName: "map")
-                        }
-
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gear")
-                        }
-                    }
-                }
-
-                ToolbarItem(placement: .bottomBar) {
-                    PrimaryButton(
-                        title: "Nieuwe Wandeling",
-                        action: {
-                            if appState.activeHikeID != nil {
-                                showActiveHikeAlert = true
-                            } else {
-                                showNewHike = true
-                            }
-                        }
-                    )
-                    .padding(.horizontal)
-                }
-            }
+            .navigationBarHidden(true)
             .sheet(isPresented: $showNewHike) {
                 NewHikeView()
             }
@@ -90,15 +107,11 @@ struct HikesOverviewView: View {
             .sheet(isPresented: $showMap) {
                 MapView()
             }
-            .sheet(isPresented: $showFilterSheet) {
-                filterSheet
-            }
             .alert("Actieve wandeling", isPresented: $showActiveHikeAlert) {
                 Button("Annuleren", role: .cancel) {}
-
-                if let activeHike = currentActiveHike {
+                if currentActiveHike != nil {
                     Button("Ga naar actieve wandeling") {
-                        // Navigatie gebeurt via de NavigationLink in de lijst
+                        // Navigation happens via banner
                     }
                 }
             } message: {
@@ -110,19 +123,86 @@ struct HikesOverviewView: View {
         }
     }
 
-    private func validateActiveHike() {
-        // Check if activeHikeID still exists and is in progress
-        guard let activeID = appState.activeHikeID else { return }
+    // MARK: - Custom Header
 
-        let hikeExists = allHikes.contains { hike in
-            hike.id == activeID && hike.status == "inProgress"
+    private var customHeader: some View {
+        HStack {
+            ListMapToggle(showMap: $showMap)
+            Spacer()
+            CircularButton(icon: "gear") {
+                showSettings = true
+            }
         }
+        .padding(.horizontal, HDSpacing.horizontalMargin)
+        .padding(.top, HDSpacing.md)
+    }
 
-        // Reset if hike doesn't exist or is no longer in progress
-        if !hikeExists {
-            appState.activeHikeID = nil
+    // MARK: - Title Section
+
+    private var titleSection: some View {
+        HStack {
+            Text("Jouw wandelingen · \(allHikes.count)")
+                .hdHandwritten(size: 24)
+            Spacer()
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    showFilterPanel.toggle()
+                }
+            } label: {
+                Image(systemName: showFilterPanel ? "xmark" : "slider.horizontal.3")
+                    .font(.title3)
+                    .foregroundColor(HDColors.forestGreen)
+            }
+        }
+        .padding(.horizontal, HDSpacing.horizontalMargin)
+        .padding(.vertical, HDSpacing.md)
+    }
+
+    // MARK: - Content Area
+
+    @ViewBuilder
+    private var contentArea: some View {
+        if allHikes.isEmpty {
+            emptyState
+        } else if filteredHikes.isEmpty {
+            emptySearchState
+        } else {
+            hikesList
         }
     }
+
+    // MARK: - Hikes List
+
+    private var hikesList: some View {
+        ScrollView {
+            VStack(spacing: HDSpacing.md) {
+                // Active hike banner (if any)
+                if let activeHike = currentActiveHike {
+                    NavigationLink(destination: ActiveHikeView(hike: activeHike)) {
+                        ActiveHikeBanner(hike: activeHike)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Regular hike cards
+                ForEach(displayedHikesWithoutActive) { hike in
+                    if hike.status == "completed" {
+                        NavigationLink(destination: CompletedHikeDetailView(hike: hike)) {
+                            HikeCardView(hike: hike)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        HikeCardView(hike: hike)
+                    }
+                }
+            }
+            .padding(.horizontal, HDSpacing.horizontalMargin)
+            .padding(.bottom, HDSpacing.fabSize + HDSpacing.fabMargin * 2)
+        }
+        .scrollDismissesKeyboard(.interactively)
+    }
+
+    // MARK: - Empty States
 
     private var emptyState: some View {
         EmptyStateView(
@@ -140,217 +220,164 @@ struct HikesOverviewView: View {
         EmptyStateView(
             icon: "magnifyingglass",
             title: "Geen resultaten",
-            message: "Probeer een andere zoekopdracht of pas je filters aan"
+            message: "Probeer een andere zoekopdracht of pas je filters aan",
+            useCircularIcon: false
         )
     }
 
-    private var hikesList: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                ForEach(displayedHikes) { hike in
-                    if hike.id == appState.activeHikeID {
-                        NavigationLink(destination: ActiveHikeView(hike: hike)) {
-                            HikeCardView(
-                                hike: hike,
-                                isActive: true
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    } else if hike.status == "completed" {
-                        NavigationLink(destination: CompletedHikeDetailView(hike: hike)) {
-                            HikeCardView(
-                                hike: hike,
-                                isActive: false
-                            )
-                        }
-                        .buttonStyle(.plain)
+    // MARK: - FAB Overlay
+
+    private var fabOverlay: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                FloatingActionButton(icon: "plus") {
+                    if appState.activeHikeID != nil {
+                        showActiveHikeAlert = true
                     } else {
-                        HikeCardView(
-                            hike: hike,
-                            isActive: false
-                        )
+                        showNewHike = true
                     }
                 }
             }
-            .padding()
         }
+        .padding(.trailing, HDSpacing.fabMargin)
+        .padding(.bottom, HDSpacing.fabMargin)
     }
 
-    private var currentActiveHike: Hike? {
-        guard let activeID = appState.activeHikeID else { return nil }
-        return allHikes.first { $0.id == activeID && $0.status == "inProgress" }
-    }
+    // MARK: - Inline Filter Panel
 
-    private var filterSheet: some View {
-        NavigationStack {
-            List {
-                Section("Type wandeling") {
-                    let availableTypes = viewModel.availableTypes(from: allHikes)
+    private var filterPanel: some View {
+        VStack(alignment: .leading, spacing: HDSpacing.xs) {
+            // Row 1: Search bar + Sort picker
+            HStack(spacing: HDSpacing.sm) {
+                // Compact search bar
+                HStack(spacing: HDSpacing.xs) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.subheadline)
+                        .foregroundColor(HDColors.forestGreen)
+                    ZStack(alignment: .leading) {
+                        if searchText.isEmpty {
+                            Text("Zoek...")
+                                .font(.subheadline)
+                                .foregroundColor(HDColors.mutedGreen)
+                        }
+                        TextField("", text: $searchText)
+                            .font(.subheadline)
+                            .foregroundColor(HDColors.forestGreen)
+                    }
+                }
+                .padding(.horizontal, HDSpacing.sm)
+                .padding(.vertical, HDSpacing.xs)
+                .background(HDColors.sageGreen)
+                .cornerRadius(HDSpacing.cornerRadiusSmall)
 
-                    if availableTypes.isEmpty {
-                        Text("Geen types beschikbaar")
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(availableTypes, id: \.self) { type in
-                            Toggle(type, isOn: Binding(
-                                get: { viewModel.selectedTypes.contains(type) },
-                                set: { isSelected in
-                                    if isSelected {
-                                        viewModel.selectedTypes.insert(type)
-                                    } else {
-                                        viewModel.selectedTypes.remove(type)
-                                    }
+                // Compact sort picker
+                Menu {
+                    ForEach(SortOption.allCases, id: \.self) { option in
+                        Button {
+                            sortOption = option
+                        } label: {
+                            HStack {
+                                Text(option.rawValue)
+                                if sortOption == option {
+                                    Image(systemName: "checkmark")
                                 }
-                            ))
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Sorteren")
+                            .font(.subheadline)
+                        Image(systemName: "chevron.down")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(HDColors.forestGreen)
+                    .padding(.horizontal, HDSpacing.sm)
+                    .padding(.vertical, HDSpacing.xs)
+                    .background(HDColors.sageGreen)
+                    .cornerRadius(HDSpacing.cornerRadiusSmall)
+                }
+            }
+
+            // Row 2: Type chips + Reset button
+            HStack(spacing: HDSpacing.sm) {
+                if !availableTypes.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: HDSpacing.xs) {
+                            ForEach(availableTypes, id: \.self) { type in
+                                typeFilterChip(type)
+                            }
                         }
                     }
                 }
 
-                Section {
-                    Button("Reset filters") {
-                        viewModel.selectedTypes.removeAll()
+                Spacer()
+
+                // Reset button (always visible, but dimmed when no filters active)
+                let hasFilters = !selectedTypes.isEmpty || sortOption != .dateDescending || !searchText.isEmpty
+                Button {
+                    withAnimation(.spring(response: 0.3)) {
+                        selectedTypes.removeAll()
+                        sortOption = .dateDescending
+                        searchText = ""
                     }
-                    .disabled(viewModel.selectedTypes.isEmpty)
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.subheadline)
+                        .foregroundColor(hasFilters ? HDColors.forestGreen : HDColors.mutedGreen.opacity(0.5))
+                }
+                .disabled(!hasFilters)
+            }
+        }
+        .padding(HDSpacing.sm)
+        .background(HDColors.cardBackground)
+        .cornerRadius(HDSpacing.cornerRadiusMedium)
+        .shadow(color: Color.black.opacity(0.08), radius: 8, y: 4)
+        .padding(.horizontal, HDSpacing.horizontalMargin)
+        .padding(.bottom, HDSpacing.xs)
+    }
+
+    private func typeFilterChip(_ type: String) -> some View {
+        let isSelected = selectedTypes.contains(type)
+
+        return Button {
+            withAnimation(.spring(response: 0.3)) {
+                if isSelected {
+                    selectedTypes.remove(type)
+                } else {
+                    selectedTypes.insert(type)
                 }
             }
-            .navigationTitle("Filters")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Klaar") {
-                        showFilterSheet = false
-                    }
-                }
-            }
+        } label: {
+            Text(type)
+                .font(.caption.weight(.medium))
+                .padding(.horizontal, HDSpacing.sm)
+                .padding(.vertical, HDSpacing.xs)
+                .background(isSelected ? HDColors.forestGreen : HDColors.sageGreen)
+                .foregroundColor(isSelected ? .white : HDColors.forestGreen)
+                .cornerRadius(HDSpacing.cornerRadiusSmall)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Helpers
+
+    private func validateActiveHike() {
+        guard let activeID = appState.activeHikeID else { return }
+
+        let hikeExists = allHikes.contains { hike in
+            hike.id == activeID && hike.status == "inProgress"
+        }
+
+        if !hikeExists {
+            appState.activeHikeID = nil
         }
     }
 }
 
-struct HikeCardView: View {
-    let hike: Hike
-    let isActive: Bool
-
-    var body: some View {
-        CardView {
-            VStack(alignment: .leading, spacing: 12) {
-                // Status badge
-                HStack {
-                    Text(hike.name)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-
-                    Spacer()
-
-                    if isActive {
-                        Text("Actief")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                    }
-                }
-
-                // Type en datum
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Image(systemName: "figure.walk")
-                            .foregroundColor(.secondary)
-                        Text(hike.type)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-
-                    HStack {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.secondary)
-                        Text(formattedDate(hike.startTime))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-
-                    if !hike.companions.isEmpty {
-                        HStack {
-                            Image(systemName: "person.2")
-                                .foregroundColor(.secondary)
-                            Text(hike.companions)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-
-                // Locatie info
-                if let location = hike.startLocationName {
-                    HStack {
-                        Image(systemName: "mappin.circle")
-                            .foregroundColor(.secondary)
-                        Text(location)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-
-                        if let endLocation = hike.endLocationName, hike.status == "completed" {
-                            Image(systemName: "arrow.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                            Text(endLocation)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-
-                // Stats voor completed hikes
-                if hike.status == "completed" {
-                    Divider()
-
-                    HStack(spacing: 20) {
-                        if let distance = hike.distance {
-                            StatView(
-                                icon: "figure.hiking",
-                                value: String(format: "%.1f km", distance)
-                            )
-                        }
-
-                        if let rating = hike.rating {
-                            StatView(
-                                icon: "star.fill",
-                                value: "\(rating)/10"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "nl_NL")
-        return formatter.string(from: date)
-    }
-}
-
-struct StatView: View {
-    let icon: String
-    let value: String
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Text(value)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-        }
-    }
-}
+// MARK: - Previews
 
 #Preview {
     HikesOverviewView()
@@ -365,4 +392,5 @@ struct StatView: View {
             message: "Start je eerste wandeling om je wandeldagboek te beginnen"
         )
     }
+    .background(HDColors.cream)
 }

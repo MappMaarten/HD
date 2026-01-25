@@ -8,12 +8,12 @@ struct SectionHeader: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(HDColors.forestGreen)
 
             if let subtitle = subtitle {
                 Text(subtitle)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(HDColors.mutedGreen)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

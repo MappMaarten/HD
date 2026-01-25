@@ -62,11 +62,7 @@ struct HDApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack(path: $appState.navigationPath) {
-                if !appState.isOnboarded {
-                    SplashView()
-                } else {
-                    HikesOverviewView()
-                }
+                SplashView()  // Always show splash first
             }
             .environment(appState)
         }

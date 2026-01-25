@@ -1,3 +1,10 @@
+//
+//  EmptyStateView.swift
+//  HD
+//
+//  Empty state display with circular icon and design system styling
+//
+
 import SwiftUI
 
 struct EmptyStateView: View {
@@ -6,40 +13,46 @@ struct EmptyStateView: View {
     let message: String
     var actionTitle: String? = nil
     var action: (() -> Void)? = nil
+    var useCircularIcon: Bool = true
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: icon)
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
+        VStack(spacing: HDSpacing.lg) {
+            if useCircularIcon {
+                CircularIconView(
+                    icon: icon,
+                    size: 120
+                )
+            } else {
+                Image(systemName: icon)
+                    .font(.system(size: 60))
+                    .foregroundColor(HDColors.forestGreen)
+            }
 
-            VStack(spacing: 8) {
+            VStack(spacing: HDSpacing.xs) {
                 Text(title)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .hdTitle(size: HDTypography.cardTitleSize)
+                    .multilineTextAlignment(.center)
 
                 Text(message)
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                    .hdSubtitle()
                     .multilineTextAlignment(.center)
             }
 
             if let actionTitle = actionTitle, let action = action {
                 PrimaryButton(title: actionTitle, action: action)
-                    .padding(.top, 8)
+                    .padding(.top, HDSpacing.xs)
             }
         }
-        .padding(40)
+        .padding(HDSpacing.xl)
     }
 }
 
 #Preview {
-    VStack(spacing: 40) {
+    VStack(spacing: HDSpacing.xl) {
         EmptyStateView(
             icon: "figure.hiking",
-            title: "No Hikes Yet",
-            message: "Start your first hike to begin your journey"
+            title: "Nog geen wandelingen",
+            message: "Start je eerste wandeling om je wandeldagboek te beginnen"
         )
 
         EmptyStateView(
@@ -47,7 +60,9 @@ struct EmptyStateView: View {
             title: "No Photos",
             message: "Add photos to capture your memories",
             actionTitle: "Add Photo",
-            action: {}
+            action: {},
+            useCircularIcon: false
         )
     }
+    .background(HDColors.cream)
 }

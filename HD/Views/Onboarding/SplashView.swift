@@ -9,34 +9,49 @@ import SwiftUI
 
 struct SplashView: View {
     @Environment(AppState.self) private var appState
-    @State private var showOnboarding = false
+    @State private var navigateToNext = false
+    @State private var opacity: Double = 0
 
     var body: some View {
         ZStack {
-            Color.green.opacity(0.1)
+            HDColors.cream
                 .ignoresSafeArea()
 
-            VStack(spacing: 20) {
-                Image(systemName: "figure.hiking")
-                    .font(.system(size: 80))
-                    .foregroundStyle(.green)
+            VStack(spacing: HDSpacing.lg) {
+                CircularIconView(
+                    icon: "figure.hiking",
+                    size: 180,
+                    animateRings: true
+                )
 
-                Text("Wandeldagboek")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                LeafDivider()
+                    .padding(.vertical, HDSpacing.sm)
 
-                Text("HD - HikeDiary")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: HDSpacing.xs) {
+                    Text("Wandeldagboek")
+                        .hdTitle(size: HDTypography.splashTitleSize)
+
+                    Text("Jouw persoonlijke wandeldagboek")
+                        .hdSubtitle()
+                }
             }
+            .opacity(opacity)
         }
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                showOnboarding = true
+            withAnimation(.easeIn(duration: 0.6)) {
+                opacity = 1
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                navigateToNext = true
             }
         }
-        .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingContainerView()
+        .fullScreenCover(isPresented: $navigateToNext) {
+            if appState.isOnboarded {
+                HikesOverviewView()
+            } else {
+                OnboardingContainerView()
+            }
         }
     }
 }
