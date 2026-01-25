@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DashedDivider: View {
-    var color: Color = HDColors.mutedGreen
+    var color: Color = HDColors.dividerColor
 
     var body: some View {
         GeometryReader { geo in
@@ -29,7 +29,7 @@ struct DashedDivider: View {
         DashedDivider()
         Text("Below the line")
 
-        DashedDivider(color: HDColors.mutedGreen)
+        DashedDivider(color: HDColors.dividerColor)
     }
     .padding(HDSpacing.horizontalMargin)
     .background(HDColors.cream)

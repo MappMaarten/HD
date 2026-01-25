@@ -19,37 +19,39 @@ struct NewHikeView: View {
 
                 VStack(spacing: 0) {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: HDSpacing.lg) {
+                        VStack(alignment: .leading, spacing: HDSpacing.md) {
                             // Header
                             journalHeader
 
-                            // 1. Type selectie
+                            // 1. Type selectie (prominent, standalone)
                             typeSection
 
                             // 2. LAW velden (animated)
                             if viewModel.isLAWRoute {
-                                lawSection
-                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                                FormSection(title: "LAW Route", icon: "map") {
+                                    lawContent
+                                }
+                                .transition(.opacity.combined(with: .move(edge: .top)))
                             }
 
-                            DashedDivider()
+                            // 3. Naam & Gezelschap (grouped in card)
+                            FormSection(title: "Details", icon: "pencil") {
+                                detailsContent
+                            }
 
-                            // 3. Naam & Gezelschap
-                            detailsSection
+                            // 4. Startlocatie (grouped in card)
+                            FormSection(title: "Locatie", icon: "mappin") {
+                                locationContent
+                            }
 
-                            DashedDivider()
-
-                            // 4. Startlocatie
-                            locationSection
-
-                            DashedDivider()
-
-                            // 5. Stemming
-                            moodSection
+                            // 5. Stemming (grouped in card)
+                            FormSection(title: "Hoe voel je je?", icon: "heart") {
+                                NatureMoodSlider(value: $viewModel.startMood)
+                            }
                         }
                         .padding(.horizontal, HDSpacing.horizontalMargin)
                         .padding(.top, HDSpacing.md)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 120)
                     }
 
                     // Sticky bottom button
@@ -106,7 +108,7 @@ struct NewHikeView: View {
                 }
             }
 
-            if let error = viewModel.typeError {
+            if viewModel.hasAttemptedStart, let error = viewModel.typeError {
                 Text(error)
                     .font(.caption)
                     .foregroundColor(.red)
@@ -114,9 +116,9 @@ struct NewHikeView: View {
         }
     }
 
-    // MARK: - LAW Section
+    // MARK: - LAW Content
 
-    private var lawSection: some View {
+    private var lawContent: some View {
         VStack(alignment: .leading, spacing: HDSpacing.md) {
             // Route picker
             VStack(alignment: .leading, spacing: HDSpacing.xs) {
@@ -129,13 +131,10 @@ struct NewHikeView: View {
                         .foregroundColor(HDColors.mutedGreen)
                         .font(.caption)
                 } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: HDSpacing.xs) {
-                            ForEach(lawRoutes) { route in
-                                lawRouteChip(route)
-                            }
-                        }
-                    }
+                    LAWRouteSelector(
+                        routes: lawRoutes,
+                        selectedRoute: $viewModel.selectedLAWRoute
+                    )
                     .onChange(of: viewModel.selectedLAWRoute) { _, _ in
                         viewModel.updateNameFromType()
                     }
@@ -149,80 +148,69 @@ struct NewHikeView: View {
                         .font(.subheadline.weight(.medium))
                         .foregroundColor(HDColors.forestGreen)
 
-                    HStack {
-                        Button {
-                            if viewModel.lawStageNumber > 1 {
-                                viewModel.lawStageNumber -= 1
-                                viewModel.updateNameFromType()
+                    HStack(spacing: HDSpacing.md) {
+                        // Pill-shaped stepper
+                        HStack(spacing: 0) {
+                            Button {
+                                if viewModel.lawStageNumber > 1 {
+                                    viewModel.lawStageNumber -= 1
+                                    viewModel.updateNameFromType()
+                                }
+                            } label: {
+                                Image(systemName: "minus")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundColor(viewModel.lawStageNumber > 1 ? HDColors.forestGreen : HDColors.mutedGreen.opacity(0.5))
+                                    .frame(width: 44, height: 40)
                             }
-                        } label: {
-                            Image(systemName: "minus.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(viewModel.lawStageNumber > 1 ? HDColors.forestGreen : HDColors.mutedGreen)
-                        }
-                        .disabled(viewModel.lawStageNumber <= 1)
+                            .disabled(viewModel.lawStageNumber <= 1)
 
-                        Text("\(viewModel.lawStageNumber)")
-                            .font(.title2.weight(.semibold))
-                            .foregroundColor(HDColors.forestGreen)
-                            .frame(minWidth: 40)
+                            Text("\(viewModel.lawStageNumber)")
+                                .font(.title3.weight(.bold))
+                                .foregroundColor(HDColors.forestGreen)
+                                .frame(minWidth: 32)
 
-                        Button {
-                            if viewModel.lawStageNumber < selectedRoute.stagesCount {
-                                viewModel.lawStageNumber += 1
-                                viewModel.updateNameFromType()
+                            Button {
+                                if viewModel.lawStageNumber < selectedRoute.stagesCount {
+                                    viewModel.lawStageNumber += 1
+                                    viewModel.updateNameFromType()
+                                }
+                            } label: {
+                                Image(systemName: "plus")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundColor(viewModel.lawStageNumber < selectedRoute.stagesCount ? HDColors.forestGreen : HDColors.mutedGreen.opacity(0.5))
+                                    .frame(width: 44, height: 40)
                             }
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(viewModel.lawStageNumber < selectedRoute.stagesCount ? HDColors.forestGreen : HDColors.mutedGreen)
+                            .disabled(viewModel.lawStageNumber >= selectedRoute.stagesCount)
                         }
-                        .disabled(viewModel.lawStageNumber >= selectedRoute.stagesCount)
-
-                        Spacer()
+                        .background(Color.white.opacity(0.5))
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(HDColors.dividerColor.opacity(0.3), lineWidth: 1)
+                        )
 
                         Text("van \(selectedRoute.stagesCount)")
                             .font(.subheadline)
                             .foregroundColor(HDColors.mutedGreen)
+
+                        Spacer()
                     }
-                    .padding(HDSpacing.sm)
-                    .background(HDColors.sageGreen)
-                    .cornerRadius(HDSpacing.cornerRadiusSmall)
                 }
             }
         }
     }
 
-    private func lawRouteChip(_ route: LAWRoute) -> some View {
-        let isSelected = viewModel.selectedLAWRoute?.id == route.id
+    // MARK: - Details Content
 
-        return Button {
-            withAnimation(.spring(response: 0.3)) {
-                viewModel.selectedLAWRoute = route
-            }
-        } label: {
-            Text(route.name)
-                .font(.subheadline.weight(.medium))
-                .padding(.horizontal, HDSpacing.sm)
-                .padding(.vertical, HDSpacing.xs)
-                .background(isSelected ? HDColors.forestGreen : HDColors.sageGreen)
-                .foregroundColor(isSelected ? .white : HDColors.forestGreen)
-                .cornerRadius(HDSpacing.cornerRadiusSmall)
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Details Section
-
-    private var detailsSection: some View {
-        VStack(spacing: HDSpacing.sm) {
+    private var detailsContent: some View {
+        VStack(spacing: HDSpacing.md) {
             VStack(alignment: .leading, spacing: HDSpacing.xs) {
                 HDTextField(
-                    "Naam van je wandeling",
+                    "Naam van je wandeling *",
                     text: $viewModel.name
                 )
 
-                if let error = viewModel.nameError {
+                if viewModel.hasAttemptedStart, let error = viewModel.nameError {
                     Text(error)
                         .font(.caption)
                         .foregroundColor(.red)
@@ -237,14 +225,14 @@ struct NewHikeView: View {
         }
     }
 
-    // MARK: - Location Section
+    // MARK: - Location Content
 
-    private var locationSection: some View {
-        VStack(alignment: .leading, spacing: HDSpacing.xs) {
+    private var locationContent: some View {
+        VStack(alignment: .leading, spacing: HDSpacing.sm) {
             HDTextField(
                 "Startlocatie",
                 text: $viewModel.startLocationName,
-                icon: "mappin"
+                icon: "location"
             ) {
                 GPSButton(
                     isLoading: viewModel.locationService.isLoadingLocation,
@@ -257,10 +245,7 @@ struct NewHikeView: View {
                 Text(error)
                     .font(.caption)
                     .foregroundColor(.red)
-            }
-
-            if viewModel.startLatitude != nil, viewModel.startLongitude != nil,
-               viewModel.locationService.locationError == nil {
+            } else if viewModel.startLatitude != nil, viewModel.startLongitude != nil {
                 HStack(spacing: HDSpacing.xs) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(HDColors.forestGreen)
@@ -268,19 +253,11 @@ struct NewHikeView: View {
                         .font(.caption)
                         .foregroundColor(HDColors.mutedGreen)
                 }
+            } else {
+                Text("Typ handmatig of gebruik \(Image(systemName: "location.fill")) voor GPS")
+                    .font(.caption)
+                    .foregroundColor(HDColors.mutedGreen)
             }
-        }
-    }
-
-    // MARK: - Mood Section
-
-    private var moodSection: some View {
-        VStack(alignment: .leading, spacing: HDSpacing.xs) {
-            Text("Hoe voel je je?")
-                .font(.subheadline.weight(.medium))
-                .foregroundColor(HDColors.forestGreen)
-
-            CompactMoodSlider(value: $viewModel.startMood)
         }
     }
 
@@ -291,14 +268,15 @@ struct NewHikeView: View {
             PrimaryButton(
                 title: "Start Wandeling",
                 action: { startHike() },
-                isEnabled: viewModel.isValid
+                icon: "figure.walk",
+                isEnabled: viewModel.canStart
             )
             .padding(.horizontal, HDSpacing.horizontalMargin)
             .padding(.vertical, HDSpacing.md)
         }
         .background(
             HDColors.cream
-                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: -4)
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -6)
         )
     }
 

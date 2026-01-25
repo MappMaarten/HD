@@ -2,7 +2,7 @@
 //  HikeCardView.swift
 //  HD
 //
-//  Redesigned hike card with date block, category tag, and notebook styling
+//  Redesigned hike card with horizontal header, dashed divider, notebook lines, and type watermark
 //
 
 import SwiftUI
@@ -35,98 +35,146 @@ struct HikeCardView: View {
     }
 
     var body: some View {
-        CardView {
-            HStack(alignment: .top, spacing: HDSpacing.sm) {
-                // Left: DateBlock
-                DateBlock(date: hike.startTime)
-
-                // Middle: Content
-                VStack(alignment: .leading, spacing: 4) {
-                    // Category tag
-                    HikeChip(icon: hikeTypeIcon, text: hike.type, style: .category)
-
-                    // Name
+        VStack(alignment: .leading, spacing: 0) {
+            // Header row: Name (full width) + Etappe badge + Chevron
+            HStack(spacing: HDSpacing.sm) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(hike.name)
                         .font(.headline)
                         .foregroundColor(HDColors.forestGreen)
                         .lineLimit(2)
 
-                    // Info row: location · companions (inline)
+                    // Type label - subtle, handwritten style
                     HStack(spacing: 4) {
-                        if let location = hike.startLocationName {
-                            Label(location, systemImage: "mappin.circle.fill")
-                                .lineLimit(1)
-                        }
-
-                        if let location = hike.startLocationName, !hike.companions.isEmpty {
-                            Text("·")
-                        }
-
-                        if !hike.companions.isEmpty {
-                            Label(hike.companions, systemImage: "person.2.fill")
-                                .lineLimit(1)
-                        }
+                        Image(systemName: hikeTypeIcon)
+                            .font(.caption2)
+                        Text(hike.type)
+                            .font(.custom(HDTypography.handwrittenFont, size: 14))
                     }
-                    .font(.caption)
                     .foregroundColor(HDColors.mutedGreen)
+                }
 
-                    // Distance row
+                Spacer(minLength: 0)
+
+                // Etappe badge (if LAW route)
+                if let stageNumber = hike.lawStageNumber {
+                    Text("Etappe \(stageNumber)")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(HDColors.amber)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(HDColors.amber.opacity(0.15))
+                        .cornerRadius(12)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(HDColors.mutedGreen.opacity(0.5))
+            }
+
+            // Dashed divider
+            DashedDivider(color: HDColors.dividerColor)
+                .padding(.vertical, HDSpacing.sm)
+
+            // Content row: DateBlock + Info + Watermark
+            HStack(alignment: .top, spacing: HDSpacing.sm) {
+                // Left: DateBlock
+                DateBlock(date: hike.startTime)
+
+                // Middle: Info
+                VStack(alignment: .leading, spacing: 6) {
+                    // Location
+                    if let location = hike.startLocationName {
+                        Label(location, systemImage: "mappin.circle.fill")
+                            .font(.subheadline)
+                            .foregroundColor(HDColors.amber)
+                            .lineLimit(1)
+                    }
+
+                    // Companions
+                    if !hike.companions.isEmpty {
+                        Label(hike.companions, systemImage: "person.2.fill")
+                            .font(.subheadline)
+                            .foregroundColor(HDColors.amber)
+                            .lineLimit(1)
+                    }
+
+                    // Distance
                     if let distance = hike.distance {
                         Label(String(format: "%.1f km", distance), systemImage: "figure.walk")
-                            .font(.caption)
-                            .foregroundColor(HDColors.mutedGreen)
+                            .font(.subheadline)
+                            .foregroundColor(HDColors.amber)
                     }
 
                     // Stats chips for completed hikes
                     if hike.status == "completed" {
                         statsChipsRow
+                            .padding(.top, 4)
                     }
                 }
 
                 Spacer(minLength: 0)
-
-                // Right: Chevron
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(HDColors.mutedGreen.opacity(0.5))
             }
         }
+        .padding(HDSpacing.cardPadding)
+        .background(
+            ZStack {
+                HDColors.cardBackground
+                NotebookLinesBackground()
+
+                // Type watermark in bottom-right corner
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        HikeTypeWatermark(hikeType: hike.type)
+                            .padding(.trailing, -8)
+                            .padding(.bottom, -8)
+                    }
+                }
+            }
+        )
+        .cornerRadius(HDSpacing.cornerRadiusMedium)
+        .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 4)
     }
 
     @ViewBuilder
     private var statsChipsRow: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
             if let duration = formattedDuration {
-                compactStatChip(icon: "clock", text: duration)
+                statChip(icon: "clock", text: duration)
             }
 
             if let rating = hike.rating {
-                compactStatChip(icon: "star.fill", text: "\(rating)")
+                statChip(icon: "star.fill", text: "\(rating)")
             }
 
             let photoCount = hike.photos?.count ?? 0
             if photoCount > 0 {
-                compactStatChip(icon: "camera.fill", text: "\(photoCount)")
+                statChip(icon: "camera.fill", text: "\(photoCount)")
             }
 
             let audioCount = hike.audioRecordings?.count ?? 0
             if audioCount > 0 {
-                compactStatChip(icon: "waveform", text: "\(audioCount)")
+                statChip(icon: "waveform", text: "\(audioCount)")
             }
         }
     }
 
-    private func compactStatChip(icon: String, text: String) -> some View {
-        HStack(spacing: 2) {
+    private func statChip(icon: String, text: String) -> some View {
+        HStack(spacing: 3) {
             Image(systemName: icon)
             Text(text)
         }
-        .font(.caption2)
+        .font(.caption)
         .foregroundColor(HDColors.mutedGreen)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
-        .background(HDColors.sageGreen.opacity(0.5))
-        .cornerRadius(4)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(HDColors.dividerColor.opacity(0.6), lineWidth: 1)
+        )
     }
 }
 
@@ -170,10 +218,38 @@ struct StatView: View {
         startTime: Date()
     )
 
+    let bergHike = Hike(
+        status: "completed",
+        name: "Bergpad Limburg",
+        type: "Bergwandeling",
+        companions: "Met familie",
+        startLocationName: "Valkenburg",
+        startTime: Calendar.current.date(byAdding: .day, value: -10, to: Date())!,
+        endTime: Calendar.current.date(byAdding: .hour, value: 5, to: Calendar.current.date(byAdding: .day, value: -10, to: Date())!),
+        distance: 8.3,
+        rating: 9
+    )
+
+    let lawHike = Hike(
+        status: "completed",
+        name: "Pieterpad",
+        type: "LAW-route",
+        companions: "Alleen",
+        startLocationName: "Groningen",
+        startTime: Calendar.current.date(byAdding: .day, value: -5, to: Date())!,
+        endTime: Calendar.current.date(byAdding: .hour, value: 6, to: Calendar.current.date(byAdding: .day, value: -5, to: Date())!),
+        distance: 24.5,
+        rating: 9,
+        lawRouteName: "Pieterpad",
+        lawStageNumber: 12
+    )
+
     return ScrollView {
         VStack(spacing: HDSpacing.md) {
             HikeCardView(hike: completedHike)
             HikeCardView(hike: inProgressHike)
+            HikeCardView(hike: bergHike)
+            HikeCardView(hike: lawHike)
         }
         .padding(HDSpacing.horizontalMargin)
     }

@@ -11,7 +11,7 @@ enum HDTypography {
     // MARK: - Font Names
     static let titleFont = "Georgia-Bold"
     static let subtitleFont = "Georgia-Italic"
-    static let handwrittenFont = "SnellRoundhand-Bold"
+    static let handwrittenFont = "BradleyHandITCTT-Bold"
 
     // MARK: - Font Sizes
     static let splashTitleSize: CGFloat = 32

@@ -4,129 +4,147 @@ struct StoryTabView: View {
     @Bindable var viewModel: ActiveHikeViewModel
     @FocusState private var isEditorFocused: Bool
 
+    private let quickActionsHeight: CGFloat = 50
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    SectionHeader(
-                        title: "Verhaal",
-                        subtitle: "Schrijf je wandelverhaal"
-                    )
+        GeometryReader { geometry in
+            ZStack {
+                HDColors.cream.ignoresSafeArea()
 
-                    CardView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Je Verhaal")
-                                .font(.headline)
+                VStack(spacing: 0) {
+                    // Compact Quick Actions (bovenaan)
+                    quickActionsBar
+                        .padding(.top, HDSpacing.sm)
+                        .padding(.bottom, HDSpacing.sm)
 
-                            // Quick action buttons
-                            VStack(spacing: 8) {
-                                HStack(spacing: 12) {
-                                    QuickActionButton(
-                                        icon: "clock",
-                                        title: "Tijdstip",
-                                        action: { insertTimestamp() }
-                                    )
-
-                                    QuickActionButton(
-                                        icon: "eye",
-                                        title: "Observatie",
-                                        action: { insertObservation() }
-                                    )
-                                }
-
-                                HStack(spacing: 12) {
-                                    QuickActionButton(
-                                        icon: "pause.circle",
-                                        title: "Pauze",
-                                        action: { insertPause() }
-                                    )
-
-                                    QuickActionButton(
-                                        icon: "hare",
-                                        title: "Dieren gespot",
-                                        action: { insertAnimalSpotted() }
-                                    )
-                                }
-                            }
-
-                            TextEditor(text: $viewModel.hike.story)
-                                .frame(minHeight: 400)
-                                .scrollContentBackground(.hidden)
-                                .focused($isEditorFocused)
-                        }
-                    }
+                    // Story Card (vult rest van scherm)
+                    storyCard(availableHeight: geometry.size.height - quickActionsHeight - HDSpacing.sm * 2 - HDSpacing.md)
+                        .padding(.horizontal, HDSpacing.horizontalMargin)
+                        .padding(.bottom, HDSpacing.md)
                 }
-                .padding()
             }
-            .navigationTitle("Verhaal")
-            .navigationBarTitleDisplayMode(.inline)
+        }
+        .toolbarBackground(HDColors.cream, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Klaar") {
+                    isEditorFocused = false
+                }
+                .foregroundColor(HDColors.forestGreen)
+            }
         }
     }
 
-    private func insertTimestamp() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        let timeString = formatter.string(from: Date())
+    // MARK: - Quick Actions Bar
 
-        let newText = "\n\n⏰ \(timeString)\n"
-        appendToStory(newText)
+    private var quickActionsBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: HDSpacing.xs) {
+                QuickActionPill(
+                    icon: "clock",
+                    title: "Tijd",
+                    action: { insertTimestamp() }
+                )
+                QuickActionPill(
+                    icon: "eye",
+                    title: "Observatie",
+                    action: { insertObservation() }
+                )
+                QuickActionPill(
+                    icon: "pause.circle",
+                    title: "Pauze",
+                    action: { insertPause() }
+                )
+                QuickActionPill(
+                    icon: "hare",
+                    title: "Dieren",
+                    action: { insertAnimalSpotted() }
+                )
+            }
+            .padding(.horizontal, HDSpacing.horizontalMargin)
+        }
+    }
+
+    // MARK: - Story Card
+
+    private func storyCard(availableHeight: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Section header
+            HStack(spacing: HDSpacing.xs) {
+                Image(systemName: "pencil.line")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(HDColors.mutedGreen)
+                Text("JE VERHAAL")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(HDColors.mutedGreen)
+                    .tracking(0.5)
+            }
+            .padding(.horizontal, HDSpacing.md)
+            .padding(.top, HDSpacing.md)
+            .padding(.bottom, HDSpacing.sm)
+
+            // TextEditor with notebook background (scrolls internally)
+            ZStack(alignment: .topLeading) {
+                HDColors.cardBackground
+
+                NotebookLinesBackground(lineSpacing: 24)
+                    .padding(.horizontal, HDSpacing.sm)
+
+                TextEditor(text: $viewModel.hike.story)
+                    .font(.custom("Georgia", size: 16))
+                    .foregroundColor(HDColors.forestGreen)
+                    .lineSpacing(4)
+                    .scrollContentBackground(.hidden)
+                    .padding(.leading, HDSpacing.sm)
+                    .padding(.trailing, 4) // Small padding for scrollbar
+                    .padding(.vertical, HDSpacing.xs)
+                    .focused($isEditorFocused)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusMedium))
+            .padding(.horizontal, HDSpacing.md)
+            .padding(.bottom, HDSpacing.md)
+        }
+        .frame(height: max(availableHeight, 300))
+        .background(HDColors.cardBackground)
+        .cornerRadius(HDSpacing.cornerRadiusMedium)
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+    }
+
+    // MARK: - Actions
+
+    private func insertTimestamp() {
+        let timeString = formatTime()
+        appendToStory("\n\n[\(timeString)]\n")
     }
 
     private func insertObservation() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        let timeString = formatter.string(from: Date())
-
-        let newText = "\n\n⏰ \(timeString)\n👁️ Observatie: "
-        appendToStory(newText)
+        let timeString = formatTime()
+        appendToStory("\n\n[\(timeString)] Observatie: ")
     }
 
     private func insertPause() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        let timeString = formatter.string(from: Date())
-
-        let newText = "\n\n⏰ \(timeString)\n⏸️ Pauze\n"
-        appendToStory(newText)
+        let timeString = formatTime()
+        appendToStory("\n\n[\(timeString)] Pauze\n")
         viewModel.incrementPauseCount()
     }
 
     private func insertAnimalSpotted() {
+        let timeString = formatTime()
+        appendToStory("\n\n[\(timeString)] Dieren gespot: ")
+        viewModel.incrementAnimalCount()
+    }
+
+    private func formatTime() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        let timeString = formatter.string(from: Date())
-
-        let newText = "\n\n⏰ \(timeString)\n🦌 Dieren gespot: "
-        appendToStory(newText)
-        viewModel.incrementAnimalCount()
+        return formatter.string(from: Date())
     }
 
     private func appendToStory(_ text: String) {
         viewModel.hike.story += text
         viewModel.hike.updatedAt = Date()
-    }
-}
-
-struct QuickActionButton: View {
-    let icon: String
-    let title: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.caption)
-                Text(title)
-                    .font(.caption)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color.accentColor.opacity(0.1))
-            .foregroundColor(.accentColor)
-            .cornerRadius(8)
-        }
     }
 }
 

@@ -1,15 +1,15 @@
 //
-//  HikeTypeSelector.swift
+//  LAWRouteSelector.swift
 //  HD
 //
-//  Tap-to-select row that opens a sheet with type options
+//  Sheet selector for LAW routes, similar to HikeTypeSelector
 //
 
 import SwiftUI
 
-struct HikeTypeSelector: View {
-    let types: [HikeType]
-    @Binding var selectedType: HikeType?
+struct LAWRouteSelector: View {
+    let routes: [LAWRoute]
+    @Binding var selectedRoute: LAWRoute?
     @State private var showSheet = false
 
     var body: some View {
@@ -18,15 +18,15 @@ struct HikeTypeSelector: View {
         } label: {
             HStack(spacing: HDSpacing.sm) {
                 // Icon
-                Image(systemName: selectedType?.iconName ?? "figure.walk")
+                Image(systemName: "map")
                     .font(.body.weight(.medium))
                     .foregroundColor(HDColors.forestGreen)
                     .frame(width: 24)
 
-                // Selected type name
-                Text(selectedType?.name ?? "Kies type wandeling")
+                // Selected route name
+                Text(selectedRoute?.name ?? "Kies route")
                     .font(.body.weight(.medium))
-                    .foregroundColor(selectedType == nil ? HDColors.mutedGreen : HDColors.forestGreen)
+                    .foregroundColor(selectedRoute == nil ? HDColors.mutedGreen : HDColors.forestGreen)
 
                 Spacer()
 
@@ -43,9 +43,9 @@ struct HikeTypeSelector: View {
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showSheet) {
-            HikeTypeSelectorSheet(
-                types: types,
-                selectedType: $selectedType,
+            LAWRouteSelectorSheet(
+                routes: routes,
+                selectedRoute: $selectedRoute,
                 isPresented: $showSheet
             )
             .presentationDetents([.medium])
@@ -56,9 +56,9 @@ struct HikeTypeSelector: View {
 
 // MARK: - Sheet Content
 
-private struct HikeTypeSelectorSheet: View {
-    let types: [HikeType]
-    @Binding var selectedType: HikeType?
+private struct LAWRouteSelectorSheet: View {
+    let routes: [LAWRoute]
+    @Binding var selectedRoute: LAWRoute?
     @Binding var isPresented: Bool
 
     var body: some View {
@@ -68,10 +68,10 @@ private struct HikeTypeSelectorSheet: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        ForEach(types) { type in
-                            typeRow(type)
+                        ForEach(routes) { route in
+                            routeRow(route)
 
-                            if type.id != types.last?.id {
+                            if route.id != routes.last?.id {
                                 Divider()
                                     .padding(.leading, 56)
                             }
@@ -86,7 +86,7 @@ private struct HikeTypeSelectorSheet: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Kies type wandeling")
+                    Text("Kies route")
                         .font(.headline)
                         .foregroundColor(HDColors.forestGreen)
                 }
@@ -94,12 +94,12 @@ private struct HikeTypeSelectorSheet: View {
         }
     }
 
-    private func typeRow(_ type: HikeType) -> some View {
-        let isSelected = selectedType?.id == type.id
+    private func routeRow(_ route: LAWRoute) -> some View {
+        let isSelected = selectedRoute?.id == route.id
 
         return Button {
             withAnimation(.spring(response: 0.3)) {
-                selectedType = type
+                selectedRoute = route
             }
             // Slight delay before dismissing for better UX
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
@@ -108,13 +108,19 @@ private struct HikeTypeSelectorSheet: View {
         } label: {
             HStack(spacing: HDSpacing.sm) {
                 // Icon
-                Image(systemName: type.iconName)
+                Image(systemName: "map")
                     .foregroundColor(HDColors.forestGreen)
                     .frame(width: 24)
 
-                // Type name
-                Text(type.name)
-                    .foregroundColor(HDColors.forestGreen)
+                // Route name and stages count
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(route.name)
+                        .foregroundColor(HDColors.forestGreen)
+
+                    Text("\(route.stagesCount) etappes")
+                        .font(.caption)
+                        .foregroundColor(HDColors.mutedGreen)
+                }
 
                 Spacer()
 
@@ -135,24 +141,22 @@ private struct HikeTypeSelectorSheet: View {
 
 #Preview {
     VStack(spacing: HDSpacing.lg) {
-        HikeTypeSelector(
-            types: [
-                HikeType(name: "Dagwandeling", iconName: "figure.walk"),
-                HikeType(name: "LAW-route", iconName: "map"),
-                HikeType(name: "Stadswandeling", iconName: "building.2"),
-                HikeType(name: "Boswandeling", iconName: "tree")
+        LAWRouteSelector(
+            routes: [
+                LAWRoute(name: "Pieterpad", stagesCount: 26),
+                LAWRoute(name: "Pelgrimspad", stagesCount: 18),
+                LAWRoute(name: "Floris V pad", stagesCount: 15)
             ],
-            selectedType: .constant(nil)
+            selectedRoute: .constant(nil)
         )
 
-        HikeTypeSelector(
-            types: [
-                HikeType(name: "Dagwandeling", iconName: "figure.walk"),
-                HikeType(name: "LAW-route", iconName: "map"),
-                HikeType(name: "Stadswandeling", iconName: "building.2"),
-                HikeType(name: "Boswandeling", iconName: "tree")
+        LAWRouteSelector(
+            routes: [
+                LAWRoute(name: "Pieterpad", stagesCount: 26),
+                LAWRoute(name: "Pelgrimspad", stagesCount: 18),
+                LAWRoute(name: "Floris V pad", stagesCount: 15)
             ],
-            selectedType: .constant(HikeType(name: "LAW-route", iconName: "map"))
+            selectedRoute: .constant(LAWRoute(name: "Pieterpad", stagesCount: 26))
         )
     }
     .padding(HDSpacing.horizontalMargin)

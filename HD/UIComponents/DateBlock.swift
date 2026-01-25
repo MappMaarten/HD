@@ -2,7 +2,7 @@
 //  DateBlock.swift
 //  HD
 //
-//  Compact date display block showing weekday, day number, and month
+//  Handwritten-style date display - journal/notebook aesthetic
 //
 
 import SwiftUI
@@ -10,11 +10,11 @@ import SwiftUI
 struct DateBlock: View {
     let date: Date
 
-    private var weekdayAbbreviation: String {
+    private var weekdayShort: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "nl_NL")
         formatter.dateFormat = "EE"
-        return formatter.string(from: date).uppercased()
+        return formatter.string(from: date).lowercased()
     }
 
     private var dayNumber: String {
@@ -27,28 +27,35 @@ struct DateBlock: View {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "nl_NL")
         formatter.dateFormat = "MMM"
-        return formatter.string(from: date).uppercased()
+        return formatter.string(from: date).lowercased()
     }
 
     var body: some View {
         VStack(spacing: 2) {
-            Text(weekdayAbbreviation)
-                .font(.caption2.weight(.medium))
+            // Weekday (small handwritten)
+            Text(weekdayShort)
+                .font(.custom(HDTypography.handwrittenFont, size: 10))
                 .foregroundColor(HDColors.mutedGreen)
+
+            // Day number (large handwritten)
             Text(dayNumber)
-                .font(.title2.weight(.bold))
+                .font(.custom(HDTypography.handwrittenFont, size: 24))
                 .foregroundColor(HDColors.forestGreen)
+
+            // Month (small handwritten)
             Text(monthAbbreviation)
-                .font(.caption2.weight(.medium))
+                .font(.custom(HDTypography.handwrittenFont, size: 12))
                 .foregroundColor(HDColors.mutedGreen)
         }
-        .frame(width: 44)
-        .padding(.vertical, HDSpacing.sm)
-        .background(HDColors.sageGreen.opacity(0.7))
-        .cornerRadius(HDSpacing.cornerRadiusSmall)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(HDColors.sageGreen.opacity(0.15))
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusSmall)
-                .stroke(HDColors.mutedGreen.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(HDColors.mutedGreen.opacity(0.25), lineWidth: 1)
         )
     }
 }

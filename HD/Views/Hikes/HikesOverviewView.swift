@@ -2,7 +2,7 @@
 //  HikesOverviewView.swift
 //  HD
 //
-//  Redesigned hikes overview with dagboek (journal) styling
+//  Redesigned hikes overview with dagboek (journal) styling and filter tabs
 //
 
 import SwiftUI
@@ -62,7 +62,7 @@ struct HikesOverviewView: View {
     }
 
     private var displayedHikesWithoutActive: [Hike] {
-        // For main list: exclude active hike (shown in banner)
+        // Exclude active hike from main list (shown separately in banner)
         filteredHikes.filter { $0.id != appState.activeHikeID }
     }
 
@@ -141,7 +141,7 @@ struct HikesOverviewView: View {
 
     private var titleSection: some View {
         HStack {
-            Text("Jouw wandelingen · \(allHikes.count)")
+            Text("Jouw wandelingen \u{00B7} \(allHikes.count)")
                 .hdHandwritten(size: 24)
             Spacer()
             Button {
@@ -176,7 +176,7 @@ struct HikesOverviewView: View {
     private var hikesList: some View {
         ScrollView {
             VStack(spacing: HDSpacing.md) {
-                // Active hike banner (if any)
+                // Active hike banner
                 if let activeHike = currentActiveHike {
                     NavigationLink(destination: ActiveHikeView(hike: activeHike)) {
                         ActiveHikeBanner(hike: activeHike)
@@ -192,7 +192,10 @@ struct HikesOverviewView: View {
                         }
                         .buttonStyle(.plain)
                     } else {
-                        HikeCardView(hike: hike)
+                        NavigationLink(destination: ActiveHikeView(hike: hike)) {
+                            HikeCardView(hike: hike)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }

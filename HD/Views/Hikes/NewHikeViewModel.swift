@@ -19,6 +19,7 @@ final class NewHikeViewModel {
     // Validation
     var nameError: String?
     var typeError: String?
+    var hasAttemptedStart: Bool = false
 
     // Location service
     let locationService = LocationService()
@@ -28,12 +29,20 @@ final class NewHikeViewModel {
     }
 
     var isValid: Bool {
-        validate()
+        // Only show validation state if user has attempted to start
+        guard hasAttemptedStart else { return true }
         return nameError == nil && typeError == nil
+    }
+
+    var canStart: Bool {
+        // Check if form is actually valid (for button enabling)
+        selectedHikeType != nil && !name.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     @discardableResult
     func validate() -> Bool {
+        hasAttemptedStart = true
+
         // Reset errors
         nameError = nil
         typeError = nil
@@ -53,11 +62,9 @@ final class NewHikeViewModel {
 
     func updateNameFromType() {
         // Auto-fill name based on type or LAW route
+        // Note: Etappe number is NOT included in name - it's shown separately in HikeCard
         if isLAWRoute, let lawRoute = selectedLAWRoute {
             name = lawRoute.name
-            if lawStageNumber > 0 {
-                name += " - Etappe \(lawStageNumber)"
-            }
         } else if let hikeType = selectedHikeType, name.isEmpty {
             name = hikeType.name
         }

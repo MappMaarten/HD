@@ -14,13 +14,12 @@ struct FloatingActionButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.title2.weight(.semibold))
+                .font(.title2.weight(.medium))
                 .foregroundColor(.white)
                 .frame(width: HDSpacing.fabSize, height: HDSpacing.fabSize)
                 .background(HDColors.forestGreen)
                 .clipShape(Circle())
-                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-                .shadow(color: .black.opacity(0.1), radius: 16, y: 8)
+                .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
         }
         .buttonStyle(.plain)
     }

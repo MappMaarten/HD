@@ -14,6 +14,8 @@ struct HDTextField<TrailingContent: View>: View {
     var icon: String? = nil
     let trailingContent: TrailingContent?
 
+    @FocusState private var isFocused: Bool
+
     init(
         _ placeholder: String,
         text: Binding<String>,
@@ -36,29 +38,38 @@ struct HDTextField<TrailingContent: View>: View {
                     .foregroundColor(HDColors.forestGreen)
             }
 
-            HStack(spacing: HDSpacing.xs) {
+            HStack(spacing: HDSpacing.sm) {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .foregroundColor(HDColors.forestGreen)
+                        .foregroundColor(isFocused ? HDColors.forestGreen : HDColors.mutedGreen)
                         .frame(width: 20)
                 }
 
                 ZStack(alignment: .leading) {
                     if text.isEmpty {
                         Text(placeholder)
-                            .foregroundColor(HDColors.mutedGreen)
+                            .foregroundColor(HDColors.mutedGreen.opacity(0.8))
                     }
                     TextField("", text: $text)
                         .foregroundColor(HDColors.forestGreen)
+                        .focused($isFocused)
                 }
 
                 if let trailing = trailingContent {
                     trailing
                 }
             }
-            .padding(HDSpacing.sm)
-            .background(HDColors.sageGreen)
+            .padding(.horizontal, HDSpacing.md)
+            .padding(.vertical, HDSpacing.sm + 2)
+            .background(Color.white.opacity(0.5))
             .cornerRadius(HDSpacing.cornerRadiusSmall)
+            .overlay(
+                RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusSmall)
+                    .stroke(
+                        isFocused ? HDColors.forestGreen.opacity(0.5) : HDColors.dividerColor.opacity(0.3),
+                        lineWidth: isFocused ? 1.5 : 1
+                    )
+            )
         }
     }
 }

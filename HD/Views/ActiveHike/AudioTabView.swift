@@ -6,138 +6,222 @@ struct AudioTabView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var audioRecorder = AudioRecorderService()
-    @State private var showNameDialog = false
+    @State private var showSaveSheet = false
     @State private var recordingName = ""
     @State private var pendingRecording: (url: URL, duration: TimeInterval)?
+    @State private var pulseScale: CGFloat = 1.0
 
     var audioRecordings: [AudioMedia] {
         viewModel.hike.audioRecordings ?? []
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
+        ZStack {
+            HDColors.cream.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Recording indicator card (shown at top when recording)
+                if audioRecorder.isRecording {
+                    recordingCard
+                        .padding(.horizontal, HDSpacing.horizontalMargin)
+                        .padding(.top, HDSpacing.md)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+
+                // Recordings list card
                 if audioRecordings.isEmpty && !audioRecorder.isRecording {
                     emptyState
-                } else {
-                    recordingsList
+                        .padding(.horizontal, HDSpacing.horizontalMargin)
+                        .padding(.top, HDSpacing.lg)
+                } else if !audioRecordings.isEmpty {
+                    recordingsCard
+                        .padding(.horizontal, HDSpacing.horizontalMargin)
+                        .padding(.top, HDSpacing.md)
                 }
 
                 Spacer()
 
-                if audioRecorder.isRecording {
-                    recordingIndicator
-                }
-
-                recordButton
-                    .padding(.bottom, 20)
+                // Record button section at bottom
+                recordButtonSection
+                    .padding(.bottom, HDSpacing.lg)
             }
-            .padding()
-            .navigationTitle("Audio")
-            .navigationBarTitleDisplayMode(.inline)
-            .alert("Opname naam", isPresented: $showNameDialog) {
-                TextField("Naam (optioneel)", text: $recordingName)
-                Button("Opslaan") {
-                    saveRecording(name: recordingName)
-                }
-                Button("Standaard naam") {
-                    saveRecording(name: "")
-                }
-                Button("Annuleer", role: .cancel) {
-                    // Delete temp file
+        }
+        .animation(.easeInOut(duration: 0.3), value: audioRecorder.isRecording)
+        .sheet(isPresented: $showSaveSheet) {
+            SaveRecordingSheet(
+                recordingName: $recordingName,
+                duration: pendingRecording?.duration ?? 0,
+                onSave: { name in
+                    saveRecording(name: name)
+                    showSaveSheet = false
+                },
+                onCancel: {
                     if let pending = pendingRecording {
                         try? FileManager.default.removeItem(at: pending.url)
                     }
                     pendingRecording = nil
                     recordingName = ""
+                    showSaveSheet = false
                 }
-            } message: {
-                Text("Geef je opname een naam of gebruik de standaard naam")
-            }
+            )
+            .presentationDetents([.height(300)])
+            .presentationDragIndicator(.visible)
         }
     }
+
+    // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        VStack(spacing: HDSpacing.md) {
+            // Icon in circle
+            ZStack {
+                Circle()
+                    .fill(HDColors.sageGreen.opacity(0.3))
+                    .frame(width: 80, height: 80)
 
-            EmptyStateView(
-                icon: "waveform",
-                title: "Geen opnames",
-                message: "Tik op de microfoon om een audio notitie op te nemen"
-            )
+                Image(systemName: "waveform")
+                    .font(.system(size: 32))
+                    .foregroundColor(HDColors.forestGreen)
+            }
 
-            Spacer()
-        }
-    }
+            VStack(spacing: HDSpacing.xs) {
+                Text("Geen opnames")
+                    .font(.headline)
+                    .foregroundColor(HDColors.forestGreen)
 
-    private var recordingsList: some View {
-        ScrollView {
-            VStack(spacing: 12) {
-                SectionHeader(
-                    title: "Opnames",
-                    subtitle: "\(audioRecordings.count) opname(s)"
-                )
-
-                ForEach(audioRecordings) { recording in
-                    AudioRecordingRow(
-                        recording: recording,
-                        audioRecorder: audioRecorder,
-                        onDelete: {
-                            deleteRecording(recording)
-                        }
-                    )
-                }
+                Text("Tik op de microfoon om een audio notitie op te nemen")
+                    .font(.subheadline)
+                    .foregroundColor(HDColors.mutedGreen)
+                    .multilineTextAlignment(.center)
             }
         }
+        .padding(HDSpacing.xl)
     }
 
-    private var recordingIndicator: some View {
-        CardView {
-            VStack(spacing: 12) {
-                HStack {
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 12, height: 12)
+    // MARK: - Recording Card (Active Recording)
 
-                    Text("Opname loopt...")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-
-                    Spacer()
-
-                    Text(formattedDuration(audioRecorder.recordingDuration))
-                        .font(.headline)
-                        .foregroundColor(.red)
-                }
-
-                // Audio level visualizer
-                AudioLevelVisualizer(level: audioRecorder.audioLevel)
-            }
-        }
-    }
-
-    private var recordButton: some View {
-        Button(action: {
-            toggleRecording()
-        }) {
-            VStack(spacing: 8) {
+    private var recordingCard: some View {
+        VStack(spacing: HDSpacing.sm) {
+            HStack {
+                // Pulsing red dot
                 ZStack {
                     Circle()
-                        .fill(audioRecorder.isRecording ? Color.red : Color.accentColor)
-                        .frame(width: 80, height: 80)
+                        .fill(HDColors.recordingRed.opacity(0.3))
+                        .frame(width: 20, height: 20)
+                        .scaleEffect(pulseScale)
 
-                    Image(systemName: audioRecorder.isRecording ? "stop.fill" : "mic.fill")
-                        .font(.system(size: 35))
-                        .foregroundColor(.white)
+                    Circle()
+                        .fill(HDColors.recordingRed)
+                        .frame(width: 10, height: 10)
+                }
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                        pulseScale = 1.5
+                    }
                 }
 
-                Text(audioRecorder.isRecording ? "Stop Opname" : "Start Opname")
-                    .font(.headline)
-                    .foregroundColor(audioRecorder.isRecording ? .red : .accentColor)
+                Text("Opname")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(HDColors.forestGreen)
+
+                Spacer()
+
+                Text(formattedDuration(audioRecorder.recordingDuration))
+                    .font(.title3.monospacedDigit().weight(.semibold))
+                    .foregroundColor(HDColors.forestGreen)
             }
+
+            // Elegant waveform
+            AudioWaveformView(level: audioRecorder.audioLevel)
+        }
+        .padding(HDSpacing.md)
+        .background(HDColors.cardBackground)
+        .cornerRadius(HDSpacing.cornerRadiusMedium)
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
+    }
+
+    // MARK: - Recordings Card
+
+    private var recordingsCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Section header
+            HStack(spacing: HDSpacing.xs) {
+                Image(systemName: "waveform")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(HDColors.mutedGreen)
+                Text("OPNAMES")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(HDColors.mutedGreen)
+                    .tracking(0.5)
+
+                Spacer()
+
+                Text("\(audioRecordings.count)")
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(HDColors.mutedGreen)
+                    .padding(.horizontal, HDSpacing.xs)
+                    .padding(.vertical, 4)
+                    .background(HDColors.sageGreen.opacity(0.5))
+                    .cornerRadius(HDSpacing.cornerRadiusSmall)
+            }
+            .padding(.horizontal, HDSpacing.md)
+            .padding(.top, HDSpacing.md)
+            .padding(.bottom, HDSpacing.sm)
+
+            // Recording rows with notebook background
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(audioRecordings) { recording in
+                        recordingRow(recording)
+
+                        if recording.id != audioRecordings.last?.id {
+                            Divider()
+                                .background(HDColors.dividerColor.opacity(0.3))
+                                .padding(.horizontal, HDSpacing.md)
+                        }
+                    }
+                }
+            }
+            .background(
+                ZStack {
+                    HDColors.cardBackground
+                    NotebookLinesBackground(lineSpacing: 52)
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusMedium))
+        }
+        .background(HDColors.cardBackground)
+        .cornerRadius(HDSpacing.cornerRadiusMedium)
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
+    }
+
+    // MARK: - Recording Row
+
+    private func recordingRow(_ recording: AudioMedia) -> some View {
+        AudioRecordingRow(
+            recording: recording,
+            audioRecorder: audioRecorder,
+            onDelete: {
+                deleteRecording(recording)
+            }
+        )
+    }
+
+    // MARK: - Record Button Section
+
+    private var recordButtonSection: some View {
+        VStack(spacing: HDSpacing.sm) {
+            RecordButton(isRecording: audioRecorder.isRecording) {
+                toggleRecording()
+            }
+
+            Text(audioRecorder.isRecording ? "Tik om te stoppen" : "Tik om op te nemen")
+                .font(.caption)
+                .foregroundColor(HDColors.mutedGreen)
         }
     }
+
+    // MARK: - Actions
 
     private func toggleRecording() {
         if audioRecorder.isRecording {
@@ -148,6 +232,7 @@ struct AudioTabView: View {
     }
 
     private func startRecording() {
+        pulseScale = 1.0
         _ = audioRecorder.startRecording()
     }
 
@@ -156,16 +241,14 @@ struct AudioTabView: View {
             return
         }
 
-        // Store pending recording and show name dialog
         pendingRecording = result
         recordingName = ""
-        showNameDialog = true
+        showSaveSheet = true
     }
 
     private func saveRecording(name: String) {
         guard let result = pendingRecording else { return }
 
-        // Save audio data
         guard let data = audioRecorder.saveRecording(tempURL: result.url, id: UUID()) else {
             pendingRecording = nil
             return
@@ -189,9 +272,7 @@ struct AudioTabView: View {
             sortOrder: audioRecordings.count
         )
 
-        // Link to hike
         recording.hike = viewModel.hike
-
         modelContext.insert(recording)
         viewModel.hike.updatedAt = Date()
 
@@ -200,7 +281,6 @@ struct AudioTabView: View {
     }
 
     private func deleteRecording(_ recording: AudioMedia) {
-        // Delete file from disk
         if let fileName = recording.localFileName {
             MediaStorageService.shared.deleteFile(fileName: fileName, type: .audio)
         }
@@ -216,38 +296,116 @@ struct AudioTabView: View {
     }
 }
 
-// MARK: - Audio Level Visualizer
+// MARK: - Save Recording Sheet
 
-struct AudioLevelVisualizer: View {
-    let level: Float
+struct SaveRecordingSheet: View {
+    @Binding var recordingName: String
+    let duration: TimeInterval
+    let onSave: (String) -> Void
+    let onCancel: () -> Void
 
     var body: some View {
-        GeometryReader { geometry in
-            HStack(spacing: 4) {
-                ForEach(0..<20, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(barColor(for: index))
-                        .frame(width: (geometry.size.width - 76) / 20)
-                        .opacity(shouldShowBar(at: index) ? 1.0 : 0.3)
+        VStack(spacing: HDSpacing.lg) {
+            // Header
+            VStack(spacing: HDSpacing.xs) {
+                Image(systemName: "waveform.circle.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(HDColors.forestGreen)
+
+                Text("Opname opslaan")
+                    .font(.headline)
+                    .foregroundColor(HDColors.forestGreen)
+
+                Text(formattedDuration(duration))
+                    .font(.caption)
+                    .foregroundColor(HDColors.mutedGreen)
+            }
+
+            // Name field
+            HDTextField(
+                "Naam (optioneel)",
+                text: $recordingName
+            )
+
+            // Buttons
+            VStack(spacing: HDSpacing.sm) {
+                PrimaryButton(title: "Opslaan") {
+                    onSave(recordingName)
                 }
+
+                Button("Standaard naam gebruiken") {
+                    onSave("")
+                }
+                .font(.subheadline)
+                .foregroundColor(HDColors.forestGreen)
+
+                Button("Annuleren") {
+                    onCancel()
+                }
+                .font(.subheadline)
+                .foregroundColor(HDColors.mutedGreen)
             }
         }
-        .frame(height: 30)
+        .padding(HDSpacing.horizontalMargin)
+        .padding(.top, HDSpacing.md)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(HDColors.cream)
     }
 
-    private func shouldShowBar(at index: Int) -> Bool {
-        let threshold = Float(index) / 20.0
-        return level >= threshold
+    private func formattedDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
+}
 
-    private func barColor(for index: Int) -> Color {
-        if index < 12 {
-            return .green
-        } else if index < 16 {
-            return .yellow
-        } else {
-            return .red
+// MARK: - Delete Confirmation Sheet
+
+struct DeleteConfirmationSheet: View {
+    let recordingName: String
+    let onDelete: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(spacing: HDSpacing.lg) {
+            // Warning icon
+            Image(systemName: "trash.circle.fill")
+                .font(.system(size: 48))
+                .foregroundColor(HDColors.recordingRed)
+
+            VStack(spacing: HDSpacing.xs) {
+                Text("Opname verwijderen?")
+                    .font(.headline)
+                    .foregroundColor(HDColors.forestGreen)
+
+                Text(recordingName)
+                    .font(.subheadline)
+                    .foregroundColor(HDColors.mutedGreen)
+            }
+
+            // Buttons
+            VStack(spacing: HDSpacing.sm) {
+                Button(action: onDelete) {
+                    Text("Verwijderen")
+                        .font(.body.weight(.semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, HDSpacing.md)
+                        .background(HDColors.recordingRed)
+                        .cornerRadius(HDSpacing.cornerRadiusMedium)
+                }
+
+                Button("Annuleren") {
+                    onCancel()
+                }
+                .font(.subheadline)
+                .foregroundColor(HDColors.forestGreen)
+            }
         }
+        .padding(HDSpacing.horizontalMargin)
+        .padding(.top, HDSpacing.md)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(HDColors.cream)
     }
 }
 
@@ -258,96 +416,142 @@ struct AudioRecordingRow: View {
     let audioRecorder: AudioRecorderService
     let onDelete: () -> Void
 
-    @State private var showDeleteConfirmation = false
+    @State private var showDeleteSheet = false
     @State private var isCurrentlyPlaying = false
+    @State private var playbackProgress: Double = 0
+    @State private var playbackTimer: Timer?
 
     var isPlaying: Bool {
         isCurrentlyPlaying && audioRecorder.isPlaying
     }
 
     var body: some View {
-        CardView {
-            VStack(spacing: 12) {
-                HStack {
-                    Image(systemName: "waveform")
-                        .font(.title2)
-                        .foregroundColor(.accentColor)
+        VStack(spacing: 0) {
+            HStack(spacing: HDSpacing.sm) {
+                // Waveform icon in circle
+                ZStack {
+                    Circle()
+                        .fill(HDColors.sageGreen.opacity(0.3))
+                        .frame(width: 40, height: 40)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(recording.name)
-                            .font(.headline)
-
-                        HStack(spacing: 8) {
-                            Text(formattedTimestamp(recording.createdAt))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-
-                            if recording.isUploaded {
-                                Image(systemName: "checkmark.icloud")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                            }
-                        }
+                    if isPlaying {
+                        // Animated waveform when playing
+                        PlayingWaveformIcon()
+                    } else {
+                        StaticWaveformIcon(
+                            barCount: 5,
+                            barWidth: 2,
+                            barSpacing: 1.5,
+                            maxHeight: 16,
+                            color: HDColors.forestGreen
+                        )
                     }
+                }
 
-                    Spacer()
+                // Name and timestamp
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recording.name)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(HDColors.forestGreen)
+                        .lineLimit(1)
 
-                    HStack(spacing: 16) {
-                        Button(action: {
-                            togglePlayback()
-                        }) {
-                            Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
-                                .font(.title)
-                                .foregroundColor(.accentColor)
-                        }
+                    HStack(spacing: HDSpacing.xs) {
+                        Text(formattedTimestamp(recording.createdAt))
+                            .font(.caption)
+                            .foregroundColor(HDColors.mutedGreen)
 
-                        Button(action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            Image(systemName: "trash.circle.fill")
-                                .font(.title)
-                                .foregroundColor(.red.opacity(0.8))
+                        if recording.isUploaded {
+                            Image(systemName: "checkmark.icloud")
+                                .font(.caption2)
+                                .foregroundColor(HDColors.forestGreen.opacity(0.7))
                         }
                     }
                 }
 
-                // Playback progress
-                if isPlaying {
-                    VStack(spacing: 4) {
-                        ProgressView(value: audioRecorder.playbackCurrentTime, total: recording.duration)
-                            .tint(.accentColor)
+                Spacer()
 
-                        HStack {
-                            Text(formattedDuration(audioRecorder.playbackCurrentTime))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                // Duration
+                Text(recording.formattedDuration)
+                    .font(.caption.monospacedDigit())
+                    .foregroundColor(HDColors.mutedGreen)
+                    .padding(.trailing, HDSpacing.xs)
 
-                            Spacer()
+                // Play/Stop button
+                Button(action: togglePlayback) {
+                    ZStack {
+                        Circle()
+                            .fill(isPlaying ? HDColors.forestGreen : HDColors.sageGreen.opacity(0.5))
+                            .frame(width: 36, height: 36)
 
-                            Text(formattedDuration(recording.duration))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                } else {
-                    HStack {
-                        Spacer()
-                        Text(recording.formattedDuration)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        Image(systemName: isPlaying ? "stop.fill" : "play.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(isPlaying ? .white : HDColors.forestGreen)
                     }
                 }
+                .buttonStyle(.plain)
+
+                // Delete button
+                Button(action: { showDeleteSheet = true }) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 14))
+                        .foregroundColor(HDColors.mutedGreen)
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Playback progress bar (shown when playing)
+            if isPlaying {
+                HStack(spacing: HDSpacing.xs) {
+                    Text(formattedDuration(playbackProgress * recording.duration))
+                        .font(.caption.monospacedDigit())
+                        .foregroundColor(HDColors.mutedGreen)
+                        .frame(width: 36, alignment: .leading)
+
+                    // Progress bar
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(HDColors.sageGreen.opacity(0.3))
+                                .frame(height: 4)
+
+                            Capsule()
+                                .fill(HDColors.forestGreen)
+                                .frame(width: geo.size.width * playbackProgress, height: 4)
+                        }
+                    }
+                    .frame(height: 4)
+
+                    Text(recording.formattedDuration)
+                        .font(.caption.monospacedDigit())
+                        .foregroundColor(HDColors.mutedGreen)
+                        .frame(width: 36, alignment: .trailing)
+                }
+                .padding(.top, HDSpacing.xs)
+                .padding(.leading, 48) // Align with text after icon
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .confirmationDialog(
-            "Opname verwijderen?",
-            isPresented: $showDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Verwijderen", role: .destructive) {
-                onDelete()
-            }
-            Button("Annuleren", role: .cancel) {}
+        .padding(.horizontal, HDSpacing.md)
+        .padding(.vertical, HDSpacing.sm)
+        .contentShape(Rectangle())
+        .animation(.easeInOut(duration: 0.2), value: isPlaying)
+        .sheet(isPresented: $showDeleteSheet) {
+            DeleteConfirmationSheet(
+                recordingName: recording.name,
+                onDelete: {
+                    onDelete()
+                    showDeleteSheet = false
+                },
+                onCancel: {
+                    showDeleteSheet = false
+                }
+            )
+            .presentationDetents([.height(240)])
+            .presentationDragIndicator(.visible)
+        }
+        .onDisappear {
+            stopPlaybackTimer()
         }
     }
 
@@ -360,22 +564,43 @@ struct AudioRecordingRow: View {
         if isPlaying {
             audioRecorder.stopPlaying()
             isCurrentlyPlaying = false
+            stopPlaybackTimer()
+            playbackProgress = 0
         } else {
-            // Stop any other playing audio first
             if audioRecorder.isPlaying {
                 audioRecorder.stopPlaying()
             }
 
             audioRecorder.play(url: url)
             isCurrentlyPlaying = true
+            playbackProgress = 0
+            startPlaybackTimer()
+        }
+    }
 
-            // Auto-stop after duration
-            DispatchQueue.main.asyncAfter(deadline: .now() + recording.duration) { [weak audioRecorder] in
-                if audioRecorder?.isPlaying == false {
-                    isCurrentlyPlaying = false
-                }
+    private func startPlaybackTimer() {
+        playbackTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            if audioRecorder.isPlaying {
+                let currentTime = audioRecorder.playbackCurrentTime
+                playbackProgress = min(1.0, currentTime / recording.duration)
+            } else {
+                // Playback finished
+                isCurrentlyPlaying = false
+                stopPlaybackTimer()
+                playbackProgress = 0
             }
         }
+    }
+
+    private func stopPlaybackTimer() {
+        playbackTimer?.invalidate()
+        playbackTimer = nil
+    }
+
+    private func formattedTimestamp(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
     }
 
     private func formattedDuration(_ duration: TimeInterval) -> String {
@@ -383,11 +608,42 @@ struct AudioRecordingRow: View {
         let seconds = Int(duration) % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
+}
 
-    private func formattedTimestamp(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
+// MARK: - Playing Waveform Icon (Animated)
+
+struct PlayingWaveformIcon: View {
+    @State private var animationPhase: Double = 0
+
+    private let barCount = 5
+    private let barWidth: CGFloat = 2
+    private let barSpacing: CGFloat = 1.5
+    private let maxHeight: CGFloat = 16
+
+    var body: some View {
+        HStack(spacing: barSpacing) {
+            ForEach(0..<barCount, id: \.self) { index in
+                RoundedRectangle(cornerRadius: barWidth / 2)
+                    .fill(HDColors.forestGreen)
+                    .frame(width: barWidth, height: barHeight(for: index))
+            }
+        }
+        .frame(height: maxHeight)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
+                animationPhase = 1
+            }
+        }
+    }
+
+    private func barHeight(for index: Int) -> CGFloat {
+        let baseHeights: [CGFloat] = [0.4, 0.7, 1.0, 0.7, 0.4]
+        let animationOffsets: [CGFloat] = [0.3, -0.2, 0.3, -0.2, 0.3]
+
+        let base = baseHeights[index % baseHeights.count]
+        let offset = animationOffsets[index % animationOffsets.count] * CGFloat(animationPhase)
+
+        return maxHeight * max(0.2, min(1.0, base + offset))
     }
 }
 
