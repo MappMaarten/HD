@@ -7,34 +7,34 @@ struct ObservationsTabView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    SectionHeader(
-                        title: "Terrein",
-                        subtitle: "Beschrijf het terrein"
-                    )
+                    SectionHeader(title: "Terrein")
 
                     CardView {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Terreinbeschrijving")
-                                .font(.headline)
-
+                        ZStack(alignment: .topLeading) {
+                            if viewModel.hike.terrainDescription.isEmpty {
+                                Text("Bijv. bospad, heuvelachtig, modderig...")
+                                    .foregroundColor(HDColors.mutedGreen.opacity(0.6))
+                                    .padding(.top, 8)
+                                    .padding(.leading, 4)
+                            }
                             TextEditor(text: $viewModel.hike.terrainDescription)
-                                .frame(minHeight: 120)
+                                .frame(minHeight: 60)
                                 .scrollContentBackground(.hidden)
                         }
                     }
 
-                    SectionHeader(
-                        title: "Weer",
-                        subtitle: "Beschrijf het weer"
-                    )
+                    SectionHeader(title: "Weer")
 
                     CardView {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Weerbeschrijving")
-                                .font(.headline)
-
+                        ZStack(alignment: .topLeading) {
+                            if viewModel.hike.weatherDescription.isEmpty {
+                                Text("Bijv. zonnig, 18°C, lichte wind...")
+                                    .foregroundColor(HDColors.mutedGreen.opacity(0.6))
+                                    .padding(.top, 8)
+                                    .padding(.leading, 4)
+                            }
                             TextEditor(text: $viewModel.hike.weatherDescription)
-                                .frame(minHeight: 120)
+                                .frame(minHeight: 60)
                                 .scrollContentBackground(.hidden)
                         }
                     }
@@ -101,7 +101,7 @@ struct CounterCardView: View {
                     Button(action: onDecrement) {
                         Image(systemName: "minus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(count > 0 ? .red : .gray.opacity(0.3))
+                            .foregroundColor(count > 0 ? HDColors.mutedGreen : HDColors.mutedGreen.opacity(0.3))
                     }
                     .disabled(count == 0)
 
@@ -114,7 +114,7 @@ struct CounterCardView: View {
                     Button(action: onIncrement) {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(HDColors.forestGreen)
                     }
                 }
             }

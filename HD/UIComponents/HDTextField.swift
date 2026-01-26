@@ -12,6 +12,7 @@ struct HDTextField<TrailingContent: View>: View {
     let placeholder: String
     @Binding var text: String
     var icon: String? = nil
+    var keyboardType: UIKeyboardType = .default
     let trailingContent: TrailingContent?
 
     @FocusState private var isFocused: Bool
@@ -21,12 +22,14 @@ struct HDTextField<TrailingContent: View>: View {
         text: Binding<String>,
         label: String? = nil,
         icon: String? = nil,
+        keyboardType: UIKeyboardType = .default,
         @ViewBuilder trailingContent: () -> TrailingContent
     ) {
         self.placeholder = placeholder
         self._text = text
         self.label = label
         self.icon = icon
+        self.keyboardType = keyboardType
         self.trailingContent = trailingContent()
     }
 
@@ -53,6 +56,7 @@ struct HDTextField<TrailingContent: View>: View {
                     TextField("", text: $text)
                         .foregroundColor(HDColors.forestGreen)
                         .focused($isFocused)
+                        .keyboardType(keyboardType)
                 }
 
                 if let trailing = trailingContent {
@@ -81,12 +85,14 @@ extension HDTextField where TrailingContent == EmptyView {
         _ placeholder: String,
         text: Binding<String>,
         label: String? = nil,
-        icon: String? = nil
+        icon: String? = nil,
+        keyboardType: UIKeyboardType = .default
     ) {
         self.placeholder = placeholder
         self._text = text
         self.label = label
         self.icon = icon
+        self.keyboardType = keyboardType
         self.trailingContent = nil
     }
 }

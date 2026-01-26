@@ -55,6 +55,7 @@ struct ActiveHikeView: View {
             // Custom Tab Bar
             HDTabBar(selectedTab: $selectedTab, tabs: tabs)
         }
+        .ignoresSafeArea(.keyboard)
         .background(HDColors.cream)
         .navigationTitle(viewModel.hike.name)
         .navigationBarTitleDisplayMode(.inline)

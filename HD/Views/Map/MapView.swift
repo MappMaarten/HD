@@ -12,7 +12,7 @@ struct MapView: View {
             ZStack(alignment: .bottom) {
                 map
 
-                if let selectedHike = selectedHike {
+                if selectedHike != nil {
                     hikeInfoCard
                 }
             }

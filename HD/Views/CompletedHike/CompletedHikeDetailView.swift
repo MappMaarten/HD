@@ -17,49 +17,59 @@ struct CompletedHikeDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Header met stats
-                statsSection
+        ZStack {
+            HDColors.cream
+                .ignoresSafeArea()
 
-                // Basis informatie
-                basicInfoSection
+            ScrollView {
+                VStack(alignment: .leading, spacing: HDSpacing.lg) {
+                    // Hero header met naam en rating
+                    heroHeader
 
-                // Foto's
-                if !photos.isEmpty {
-                    photosSection
+                    // Header met stats
+                    statsSection
+
+                    // Basis informatie
+                    basicInfoSection
+
+                    // De Reis (start → eind met stemmingen)
+                    journeySection
+
+                    // Foto's
+                    if !photos.isEmpty {
+                        photosSection
+                    }
+
+                    // Audio
+                    if !audioRecordings.isEmpty {
+                        audioSection
+                    }
+
+                    // Verhaal en notities
+                    if !hike.story.isEmpty || !hike.notes.isEmpty {
+                        storySection
+                    }
+
+                    // Observaties
+                    observationsSection
+
+                    // Reflectie
+                    if !hike.reflection.isEmpty {
+                        reflectionSection
+                    }
+
+                    // Delete button
+                    deleteButton
                 }
-
-                // Audio
-                if !audioRecordings.isEmpty {
-                    audioSection
-                }
-
-                // Verhaal en notities
-                if !hike.story.isEmpty || !hike.notes.isEmpty {
-                    storySection
-                }
-
-                // Observaties
-                observationsSection
-
-                // Reflectie
-                if !hike.reflection.isEmpty {
-                    reflectionSection
-                }
-
-                // LAW Route info
-                if hike.lawRouteName != nil {
-                    lawSection
-                }
-
-                // Delete button
-                deleteButton
+                .padding(.horizontal, HDSpacing.horizontalMargin)
+                .padding(.top, HDSpacing.md)
+                .padding(.bottom, HDSpacing.xl)
             }
-            .padding()
         }
-        .navigationTitle(hike.name)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(HDColors.cream, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .preferredColorScheme(.light)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink("Bewerk") {
@@ -81,8 +91,41 @@ struct CompletedHikeDetailView: View {
         }
     }
 
+    private var heroHeader: some View {
+        VStack(alignment: .leading, spacing: HDSpacing.xs) {
+            HStack {
+                Text(hike.name)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(HDColors.forestGreen)
+
+                Spacer()
+
+                // Rating badge met amber accent
+                if let rating = hike.rating {
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(HDColors.amber)
+                        Text("\(rating)")
+                            .fontWeight(.semibold)
+                    }
+                    .font(.subheadline)
+                    .padding(.horizontal, HDSpacing.sm)
+                    .padding(.vertical, HDSpacing.xs)
+                    .background(HDColors.amberLight.opacity(0.5))
+                    .cornerRadius(HDSpacing.cornerRadiusSmall)
+                }
+            }
+
+            // Datum subtitel
+            Text(formattedDate(hike.startTime))
+                .font(.subheadline)
+                .foregroundColor(HDColors.mutedGreen)
+        }
+    }
+
     private var statsSection: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: HDSpacing.md) {
             if let distance = hike.distance {
                 StatCard(
                     icon: "figure.hiking",
@@ -95,29 +138,30 @@ struct CompletedHikeDetailView: View {
                 StatCard(
                     icon: "star.fill",
                     title: "Waardering",
-                    value: "\(rating)/10"
+                    value: "\(rating)/10",
+                    isHighlighted: rating >= 8
                 )
             }
 
-            if let endMood = hike.endMood {
+            if let endTime = hike.endTime {
                 StatCard(
-                    icon: "face.smiling",
-                    title: "Eindstemming",
-                    value: "\(endMood)/10"
+                    icon: "clock",
+                    title: "Duur",
+                    value: formatDuration(from: hike.startTime, to: endTime)
                 )
             }
         }
     }
 
     private var basicInfoSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: HDSpacing.sm) {
             SectionHeader(
                 title: "Informatie",
                 subtitle: "Wandeling details"
             )
 
             CardView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: HDSpacing.sm) {
                     DetailRow(
                         icon: "figure.walk",
                         label: "Type",
@@ -138,42 +182,33 @@ struct CompletedHikeDetailView: View {
                         value: formattedDate(hike.startTime)
                     )
 
-                    if let endTime = hike.endTime {
-                        DetailRow(
-                            icon: "clock",
-                            label: "Duur",
-                            value: formatDuration(from: hike.startTime, to: endTime)
-                        )
-                    }
+                    // LAW Route info (indien aanwezig)
+                    if hike.lawRouteName != nil {
+                        Divider()
 
-                    if let startLocation = hike.startLocationName {
-                        DetailRow(
-                            icon: "mappin.circle",
-                            label: "Start",
-                            value: startLocation
-                        )
-                    }
+                        if let routeName = hike.lawRouteName {
+                            DetailRow(
+                                icon: "signpost.right",
+                                label: "LAW Route",
+                                value: routeName
+                            )
+                        }
 
-                    if let endLocation = hike.endLocationName {
-                        DetailRow(
-                            icon: "mappin.circle.fill",
-                            label: "Einde",
-                            value: endLocation
-                        )
+                        if let stageNumber = hike.lawStageNumber {
+                            DetailRow(
+                                icon: "number",
+                                label: "Etappe",
+                                value: "\(stageNumber)"
+                            )
+                        }
                     }
-
-                    DetailRow(
-                        icon: "face.smiling",
-                        label: "Startstemming",
-                        value: "\(hike.startMood)/10"
-                    )
                 }
             }
         }
     }
 
     private var photosSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: HDSpacing.sm) {
             SectionHeader(
                 title: "Foto's",
                 subtitle: "\(photos.count) foto('s)"
@@ -181,7 +216,7 @@ struct CompletedHikeDetailView: View {
 
             LazyVGrid(
                 columns: [GridItem(.flexible()), GridItem(.flexible())],
-                spacing: 12
+                spacing: HDSpacing.sm
             ) {
                 ForEach(photos) { photo in
                     CompletedPhotoGridItem(photo: photo)
@@ -191,13 +226,13 @@ struct CompletedHikeDetailView: View {
     }
 
     private var audioSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: HDSpacing.sm) {
             SectionHeader(
                 title: "Audio",
                 subtitle: "\(audioRecordings.count) opname(s)"
             )
 
-            VStack(spacing: 12) {
+            VStack(spacing: HDSpacing.sm) {
                 ForEach(audioRecordings) { recording in
                     CompletedAudioRow(recording: recording)
                 }
@@ -206,7 +241,7 @@ struct CompletedHikeDetailView: View {
     }
 
     private var storySection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: HDSpacing.sm) {
             SectionHeader(
                 title: "Verhaal",
                 subtitle: "Jouw wandelverhaal"
@@ -214,39 +249,41 @@ struct CompletedHikeDetailView: View {
 
             if !hike.story.isEmpty {
                 CardView {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: HDSpacing.xs) {
                         Text("Verhaal")
                             .font(.headline)
 
                         Text(hike.story)
                             .font(.body)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
 
             if !hike.notes.isEmpty {
                 CardView {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: HDSpacing.xs) {
                         Text("Notities")
                             .font(.headline)
 
                         Text(hike.notes)
                             .font(.body)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
     }
 
     private var observationsSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: HDSpacing.sm) {
             SectionHeader(
                 title: "Observaties",
                 subtitle: "Wat je hebt gezien"
             )
 
             CardView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: HDSpacing.sm) {
                     if !hike.terrainDescription.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Terrein")
@@ -271,7 +308,7 @@ struct CompletedHikeDetailView: View {
 
                     Divider()
 
-                    HStack(spacing: 20) {
+                    HStack(spacing: HDSpacing.lg) {
                         CountBadge(
                             icon: "pawprint",
                             label: "Dieren",
@@ -296,58 +333,60 @@ struct CompletedHikeDetailView: View {
     }
 
     private var reflectionSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: HDSpacing.sm) {
             SectionHeader(
                 title: "Reflectie",
                 subtitle: "Terugblik"
             )
 
             CardView {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HDSpacing.xs) {
                     Text(hike.reflection)
                         .font(.body)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
 
-    private var lawSection: some View {
-        VStack(spacing: 12) {
+    private var journeySection: some View {
+        VStack(spacing: HDSpacing.sm) {
             SectionHeader(
-                title: "LAW Route",
-                subtitle: "Langeafstandswandeling"
+                title: "De Reis",
+                subtitle: "Van start tot eind"
             )
 
-            CardView {
-                VStack(alignment: .leading, spacing: 8) {
-                    if let routeName = hike.lawRouteName {
-                        DetailRow(
-                            icon: "signpost.right",
-                            label: "Route",
-                            value: routeName
-                        )
-                    }
-
-                    if let stageNumber = hike.lawStageNumber {
-                        DetailRow(
-                            icon: "number",
-                            label: "Etappe",
-                            value: "\(stageNumber)"
-                        )
-                    }
-                }
-            }
+            JourneyCard(
+                startLocation: hike.startLocationName,
+                startTime: hike.startTime,
+                startMood: hike.startMood,
+                endLocation: hike.endLocationName,
+                endTime: hike.endTime,
+                endMood: hike.endMood
+            )
         }
     }
 
     private var deleteButton: some View {
-        SecondaryButton(
-            title: "Wandeling Verwijderen",
-            action: {
-                showDeleteConfirmation = true
+        Button(action: {
+            showDeleteConfirmation = true
+        }) {
+            HStack {
+                Image(systemName: "trash")
+                Text("Wandeling Verwijderen")
             }
-        )
-        .padding(.top, 20)
+            .font(.body)
+            .fontWeight(.medium)
+            .foregroundColor(HDColors.recordingRed)
+            .frame(maxWidth: .infinity)
+            .padding(HDSpacing.buttonPadding)
+            .background(Color.clear)
+            .overlay(
+                RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusMedium)
+                    .stroke(HDColors.recordingRed, lineWidth: 2)
+            )
+        }
+        .padding(.top, HDSpacing.xl)
     }
 
     private func deleteHike() {
@@ -383,10 +422,10 @@ struct CompletedPhotoGridItem: View {
     @State private var loadedImage: UIImage?
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusMedium)
             .fill(
                 LinearGradient(
-                    colors: [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.1)],
+                    colors: [HDColors.sageGreen.opacity(0.3), HDColors.sageGreen.opacity(0.1)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -401,11 +440,11 @@ struct CompletedPhotoGridItem: View {
                     } else {
                         Image(systemName: "photo")
                             .font(.system(size: 40))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(HDColors.mutedGreen.opacity(0.5))
                     }
                 }
             )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusMedium))
             .onAppear {
                 loadImage()
             }
@@ -429,7 +468,7 @@ struct CompletedAudioRow: View {
             HStack {
                 Image(systemName: "waveform")
                     .font(.title2)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(HDColors.forestGreen)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(recording.name)
@@ -437,21 +476,21 @@ struct CompletedAudioRow: View {
 
                     Text(formattedTimestamp(recording.createdAt))
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(HDColors.mutedGreen)
                 }
 
                 Spacer()
 
                 Text(recording.formattedDuration)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(HDColors.mutedGreen)
 
                 Button(action: {
                     togglePlayback()
                 }) {
                     Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
                         .font(.title)
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(HDColors.forestGreen)
                 }
             }
         }
@@ -493,25 +532,28 @@ struct StatCard: View {
     let icon: String
     let title: String
     let value: String
+    var isHighlighted: Bool = false
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: HDSpacing.xs) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.accentColor)
+                .foregroundColor(isHighlighted ? HDColors.amber : HDColors.forestGreen)
 
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
+                .foregroundColor(HDColors.forestGreen)
 
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(HDColors.mutedGreen)
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.accentColor.opacity(0.1))
-        .cornerRadius(12)
+        .padding(HDSpacing.cardPadding)
+        .background(HDColors.cardBackground)
+        .cornerRadius(HDSpacing.cornerRadiusMedium)
+        .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 4)
     }
 }
 
@@ -523,18 +565,19 @@ struct DetailRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(.secondary)
+                .foregroundColor(HDColors.mutedGreen)
                 .frame(width: 24)
 
             Text(label)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(HDColors.mutedGreen)
 
             Spacer()
 
             Text(value)
                 .font(.body)
                 .fontWeight(.medium)
+                .foregroundColor(HDColors.forestGreen)
         }
     }
 }
@@ -552,12 +595,16 @@ struct CountBadge: View {
                 Text("\(count)")
                     .font(.headline)
             }
-            .foregroundColor(.primary)
+            .foregroundColor(HDColors.forestGreen)
 
             Text(label)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(HDColors.mutedGreen)
         }
+        .padding(.horizontal, HDSpacing.sm)
+        .padding(.vertical, HDSpacing.xs)
+        .background(HDColors.sageGreen.opacity(0.2))
+        .cornerRadius(HDSpacing.cornerRadiusSmall)
     }
 }
 
@@ -590,4 +637,5 @@ struct CountBadge: View {
             )
         )
     }
+    .preferredColorScheme(.light)
 }

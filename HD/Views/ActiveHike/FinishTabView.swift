@@ -11,184 +11,245 @@ struct FinishTabView: View {
     @State private var reflection: String = ""
     @State private var endTime = Date()
     @State private var endLocationName: String = ""
-    @State private var showCompletionMessage = false
+    @State private var showCompletionOverlay = false
 
     let locationService = LocationService()
 
-    let reflectionPrompts = [
-        "Wat viel je het meest op tijdens deze wandeling?",
-        "Welk moment blijft je het meest bij?",
-        "Hoe voelde je je tijdens de wandeling?",
-        "Zou je deze route aanraden aan anderen?"
-    ]
+    private let reflectionPlaceholder = "Wat blijft je bij van deze wandeling? Welk moment, gevoel of beeld neem je mee?"
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    SectionHeader(
-                        title: "Wandeling Afronden",
-                        subtitle: "Vul de laatste gegevens in"
-                    )
+            ZStack {
+                HDColors.cream
+                    .ignoresSafeArea()
 
-                    // Eindtijd
-                    CardView {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Eindtijd")
-                                .font(.headline)
+                VStack(spacing: 0) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: HDSpacing.md) {
+                            // Header
+                            journalHeader
 
-                            DatePicker(
-                                "Eindtijd",
-                                selection: $endTime,
-                                displayedComponents: [.date, .hourAndMinute]
-                            )
-                            .labelsHidden()
-                        }
-                    }
+                            // 1. Eindtijd
+                            FormSection(title: "Eindtijd", icon: "clock") {
+                                endTimeContent
+                            }
 
-                    // Eindlocatie
-                    CardView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Eindlocatie")
-                                .font(.headline)
+                            // 2. Eindlocatie
+                            FormSection(title: "Eindlocatie", icon: "mappin.and.ellipse") {
+                                locationContent
+                            }
 
-                            TextField("Locatie (bijv. Soesterberg)", text: $endLocationName)
-                                .textFieldStyle(.roundedBorder)
+                            // 3. Afstand
+                            FormSection(title: "Afstand", icon: "point.topleft.down.to.point.bottomright.curvepath") {
+                                distanceContent
+                            }
 
-                            Button {
-                                locationService.fetchCurrentLocation { result in
-                                    switch result {
-                                    case .success(let locationData):
-                                        endLocationName = locationData.name
-                                    case .failure:
-                                        break
-                                    }
-                                }
-                            } label: {
-                                HStack {
-                                    Image(systemName: "location.fill")
-                                    Text("Huidige locatie ophalen")
+                            // 4. Wandelwaardering
+                            FormSection(title: "Hoe heb je de wandeling ervaren?", icon: "star") {
+                                HikeRatingSlider(value: $rating)
+                            }
 
-                                    if locationService.isLoadingLocation {
-                                        Spacer()
-                                        ProgressView()
-                                            .scaleEffect(0.8)
-                                    }
+                            // 5. Eindstemming met vergelijking
+                            FormSection(title: "Hoe voel je je nu?", icon: "heart") {
+                                VStack(spacing: HDSpacing.md) {
+                                    NatureMoodSlider(value: $endMood)
+                                    moodComparisonView
                                 }
                             }
-                            .disabled(locationService.isLoadingLocation)
 
-                            if let error = locationService.locationError {
-                                Text(error)
-                                    .font(.caption)
-                                    .foregroundColor(.red)
+                            // 6. Reflectie
+                            FormSection(title: "Reflectie", icon: "text.quote") {
+                                reflectionContent
                             }
                         }
+                        .padding(.horizontal, HDSpacing.horizontalMargin)
+                        .padding(.top, HDSpacing.md)
+                        .padding(.bottom, 120)
                     }
 
-                    // Afstand
-                    CardView {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Afstand (km)")
-                                .font(.headline)
-
-                            TextField("Bijv. 12.5", text: $distance)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(.roundedBorder)
-                        }
-                    }
-
-                    // Waardering
-                    CardView {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Waardering")
-                                .font(.headline)
-
-                            HStack {
-                                Text("⭐️")
-                                    .font(.title2)
-
-                                Slider(value: $rating, in: 1...10, step: 1)
-
-                                Text("⭐️⭐️⭐️")
-                                    .font(.title2)
-                            }
-
-                            Text("\(Int(rating))/10")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-
-                    // Eindstemming
-                    CardView {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Eindstemming")
-                                .font(.headline)
-
-                            HStack {
-                                Text("😔")
-                                    .font(.title2)
-
-                                Slider(value: $endMood, in: 1...10, step: 1)
-
-                                Text("😊")
-                                    .font(.title2)
-                            }
-
-                            Text("\(Int(endMood))/10")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-
-                    // Reflectie
-                    CardView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Reflectie")
-                                .font(.headline)
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Denk na over:")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-
-                                ForEach(reflectionPrompts, id: \.self) { prompt in
-                                    HStack(alignment: .top, spacing: 8) {
-                                        Text("•")
-                                            .foregroundColor(.secondary)
-                                        Text(prompt)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                            }
-                            .padding(.vertical, 8)
-
-                            TextEditor(text: $reflection)
-                                .frame(minHeight: 150)
-                                .scrollContentBackground(.hidden)
-                        }
-                    }
-
-                    PrimaryButton(
-                        title: "Wandeling Afronden",
-                        action: {
-                            finishHike()
-                        }
-                    )
-                    .padding(.vertical)
+                    // Sticky bottom button
+                    stickyButton
                 }
-                .padding()
             }
-            .navigationTitle("Afronden")
             .navigationBarTitleDisplayMode(.inline)
-            .alert("Geweldig! 🎉", isPresented: $showCompletionMessage) {
-                Button("OK") {
-                    dismiss()
+            .toolbarBackground(HDColors.cream, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .overlay {
+                if showCompletionOverlay {
+                    HikeCompletionOverlay {
+                        dismiss()
+                    }
                 }
-            } message: {
-                Text("Je hebt een wandeling afgerond!")
+            }
+        }
+        .onAppear {
+            // Initialize endMood with startMood value
+            endMood = Double(viewModel.hike.startMood)
+        }
+    }
+
+    // MARK: - Journal Header
+
+    private var journalHeader: some View {
+        Text("Vul de laatste gegevens in om je wandeling compleet te maken en af te ronden.")
+            .font(.custom("Georgia-Italic", size: 15))
+            .foregroundColor(HDColors.mutedGreen)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, HDSpacing.md)
+    }
+
+    // MARK: - End Time Content
+
+    private var endTimeContent: some View {
+        DatePicker(
+            "Eindtijd",
+            selection: $endTime,
+            displayedComponents: [.date, .hourAndMinute]
+        )
+        .labelsHidden()
+        .tint(HDColors.forestGreen)
+    }
+
+    // MARK: - Location Content
+
+    private var locationContent: some View {
+        VStack(alignment: .leading, spacing: HDSpacing.sm) {
+            HDTextField(
+                "Eindlocatie",
+                text: $endLocationName,
+                icon: "location"
+            ) {
+                GPSButton(
+                    isLoading: locationService.isLoadingLocation,
+                    hasLocation: locationService.fetchedLatitude != nil,
+                    action: { fetchCurrentLocation() }
+                )
+            }
+
+            if let error = locationService.locationError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+            } else if locationService.fetchedLatitude != nil, locationService.fetchedLongitude != nil {
+                HStack(spacing: HDSpacing.xs) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(HDColors.forestGreen)
+                    Text("GPS coördinaten opgeslagen")
+                        .font(.caption)
+                        .foregroundColor(HDColors.mutedGreen)
+                }
+            } else {
+                Text("Typ handmatig of gebruik \(Image(systemName: "location.fill")) voor GPS")
+                    .font(.caption)
+                    .foregroundColor(HDColors.mutedGreen)
+            }
+        }
+    }
+
+    // MARK: - Distance Content
+
+    private var distanceContent: some View {
+        HDTextField(
+            "Bijv. 12.5",
+            text: $distance,
+            icon: "ruler",
+            keyboardType: .decimalPad
+        ) {
+            Text("km")
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(HDColors.mutedGreen)
+        }
+    }
+
+    // MARK: - Mood Comparison View
+
+    private var moodComparisonView: some View {
+        HStack(spacing: HDSpacing.xs) {
+            Text("Startstemming: \(viewModel.hike.startMood)")
+                .font(.caption)
+                .foregroundColor(HDColors.mutedGreen)
+
+            Spacer()
+
+            // Verschil indicator
+            let startMood = viewModel.hike.startMood
+            let currentEndMood = Int(endMood)
+            let difference = currentEndMood - startMood
+
+            if difference > 0 {
+                Label("+\(difference)", systemImage: "arrow.up.right")
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(HDColors.forestGreen)
+            } else if difference < 0 {
+                Label("\(difference)", systemImage: "arrow.down.right")
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(HDColors.amber)
+            } else {
+                Text("Gelijk gebleven")
+                    .font(.caption)
+                    .foregroundColor(HDColors.mutedGreen)
+            }
+        }
+        .padding(.top, HDSpacing.xs)
+    }
+
+    // MARK: - Reflection Content
+
+    private var reflectionContent: some View {
+        ZStack(alignment: .topLeading) {
+            // Placeholder
+            if reflection.isEmpty {
+                Text(reflectionPlaceholder)
+                    .font(.custom("Georgia-Italic", size: 15))
+                    .foregroundColor(HDColors.mutedGreen.opacity(0.7))
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 8)
+            }
+
+            // TextEditor
+            TextEditor(text: $reflection)
+                .font(.body)
+                .foregroundColor(HDColors.forestGreen)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+                .frame(minHeight: 120)
+        }
+        .padding(HDSpacing.sm)
+        .background(Color.white.opacity(0.5))
+        .cornerRadius(HDSpacing.cornerRadiusSmall)
+        .overlay(
+            RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusSmall)
+                .stroke(HDColors.dividerColor.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    // MARK: - Sticky Button
+
+    private var stickyButton: some View {
+        VStack {
+            PrimaryButton(
+                title: "Wandeling Afronden",
+                action: { finishHike() },
+                icon: "checkmark.circle"
+            )
+            .padding(.horizontal, HDSpacing.horizontalMargin)
+            .padding(.vertical, HDSpacing.md)
+        }
+        .background(
+            HDColors.cream
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -6)
+        )
+    }
+
+    // MARK: - Actions
+
+    private func fetchCurrentLocation() {
+        locationService.fetchCurrentLocation { result in
+            switch result {
+            case .success(let locationData):
+                endLocationName = locationData.name
+            case .failure:
+                break
             }
         }
     }
@@ -213,7 +274,7 @@ struct FinishTabView: View {
 
         appState.activeHikeID = nil
 
-        showCompletionMessage = true
+        showCompletionOverlay = true
     }
 }
 
@@ -224,7 +285,7 @@ struct FinishTabView: View {
                 status: "inProgress",
                 name: "Test Wandeling",
                 type: "Dagwandeling",
-                startMood: 8
+                startMood: 6
             )
         )
     )

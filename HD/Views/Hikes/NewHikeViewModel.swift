@@ -80,7 +80,7 @@ final class NewHikeViewModel {
                 self.startLatitude = locationData.latitude
                 self.startLongitude = locationData.longitude
 
-            case .failure(let error):
+            case .failure:
                 // Error is already set in locationService
                 break
             }
