@@ -52,18 +52,6 @@ struct SettingsView: View {
     private var settingsContent: some View {
         ScrollView {
             VStack(spacing: HDSpacing.md) {
-                // Account sectie
-                FormSection(title: "Account", icon: "person") {
-                    NavigationLink(destination: UserDataView()) {
-                        SettingsRow(
-                            icon: "person.circle",
-                            title: "Jouw gegevens",
-                            subtitle: "Persoonlijke informatie en sync"
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-
                 // Wandeling sectie
                 FormSection(title: "Wandeling", icon: "figure.walk") {
                     VStack(spacing: 0) {
@@ -154,6 +142,19 @@ struct SettingsView: View {
                                 icon: "envelope",
                                 title: "Contact",
                                 subtitle: "Neem contact met ons op"
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider()
+                            .background(HDColors.dividerColor)
+                            .padding(.vertical, HDSpacing.xs)
+
+                        NavigationLink(destination: YourDataView()) {
+                            SettingsRow(
+                                icon: "hand.raised",
+                                title: "Jouw gegevens",
+                                subtitle: "Privacy en iCloud status"
                             )
                         }
                         .buttonStyle(.plain)

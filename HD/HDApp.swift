@@ -7,9 +7,26 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
+
+// MARK: - App Delegate
+
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        return [.banner, .sound]
+    }
+}
+
+// MARK: - Main App
 
 @main
 struct HDApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState = AppState()
 
     var sharedModelContainer: ModelContainer = {

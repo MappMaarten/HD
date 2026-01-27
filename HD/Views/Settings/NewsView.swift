@@ -1,43 +1,78 @@
 import SwiftUI
 
 struct NewsView: View {
-    private let newsURL = URL(string: "https://example.com/news")!
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+
+    private let newsURL = URL(string: "https://www.wandeldagboek.app/nieuws")!
 
     var body: some View {
-        List {
-            Section {
-                Text("Blijf op de hoogte van nieuwe functies, updates en verbeteringen aan de Wandeldagboek app.")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-            }
+        ZStack {
+            HDColors.cream.ignoresSafeArea()
 
-            Section {
-                Link(destination: newsURL) {
-                    HStack {
-                        Image(systemName: "newspaper")
-                            .foregroundColor(.accentColor)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Bekijk alle updates")
-                                .font(.body)
-                            Text("Laatste nieuws en aankondigingen")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "arrow.up.right")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            } header: {
-                Text("Nieuws")
+            VStack(spacing: 0) {
+                titleSection
+                descriptionSection
+                Spacer()
+                buttonSection
             }
         }
-        .navigationTitle("Nieuws & updates")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Terug")
+                            .font(.system(size: 16))
+                    }
+                    .foregroundColor(HDColors.forestGreen)
+                }
+            }
+        }
+    }
+
+    // MARK: - Title Section
+
+    private var titleSection: some View {
+        HStack {
+            Text("Nieuws en updates")
+                .hdHandwritten(size: 24)
+            Spacer()
+        }
+        .padding(.horizontal, HDSpacing.horizontalMargin)
+        .padding(.top, HDSpacing.md)
+        .padding(.bottom, HDSpacing.sm)
+    }
+
+    // MARK: - Description Section
+
+    private var descriptionSection: some View {
+        FormSection(title: "Blijf op de hoogte", icon: "newspaper") {
+            Text("Volg onze updates en lees blogs over wandelen en nieuwe ontwikkelingen in de app.")
+                .font(.system(size: 14))
+                .foregroundColor(HDColors.forestGreen)
+                .lineSpacing(4)
+        }
+        .padding(.horizontal, HDSpacing.horizontalMargin)
+    }
+
+    // MARK: - Button Section
+
+    private var buttonSection: some View {
+        PrimaryButton(
+            title: "Bekijk nieuws",
+            action: {
+                openURL(newsURL)
+            },
+            icon: "arrow.up.right"
+        )
+        .padding(.horizontal, HDSpacing.horizontalMargin)
+        .padding(.bottom, HDSpacing.lg)
     }
 }
 

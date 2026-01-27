@@ -274,6 +274,18 @@ struct FinishTabView: View {
 
         appState.activeHikeID = nil
 
+        // Handle notifications
+        let motivationDays = UserDefaults.standard.integer(forKey: "motivationReminderDays")
+        NotificationService.shared.onHikeEnded(
+            completedDate: endTime,
+            motivationDaysInterval: motivationDays == 0 ? 3 : motivationDays,
+            motivationEnabled: UserDefaults.standard.bool(forKey: "notificationsEnabled")
+                && UserDefaults.standard.bool(forKey: "motivationReminderEnabled")
+        )
+
+        // Store last completed hike date
+        UserDefaults.standard.set(endTime.timeIntervalSince1970, forKey: "lastCompletedHikeDate")
+
         showCompletionOverlay = true
     }
 }

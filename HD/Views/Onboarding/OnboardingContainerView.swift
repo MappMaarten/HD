@@ -134,8 +134,13 @@ struct OnboardingContainerView: View {
     }
 
     private func completeOnboarding() {
-        appState.isOnboarded = true
-        dismiss()
+        Task {
+            _ = await NotificationService.shared.requestPermission()
+            await MainActor.run {
+                appState.isOnboarded = true
+                dismiss()
+            }
+        }
     }
 }
 

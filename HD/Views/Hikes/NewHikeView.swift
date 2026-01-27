@@ -308,6 +308,14 @@ struct NewHikeView: View {
         modelContext.insert(newHike)
         appState.activeHikeID = newHike.id
 
+        // Schedule hike reminders if enabled
+        if UserDefaults.standard.bool(forKey: "notificationsEnabled"),
+           UserDefaults.standard.bool(forKey: "activeHikeReminderEnabled") {
+            let interval = UserDefaults.standard.integer(forKey: "activeHikeReminderInterval")
+            NotificationService.shared.scheduleHikeReminders(intervalMinutes: interval == 0 ? 30 : interval)
+        }
+        NotificationService.shared.onHikeStarted()
+
         dismiss()
     }
 }

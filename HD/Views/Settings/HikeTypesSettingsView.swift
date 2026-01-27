@@ -2,13 +2,19 @@ import SwiftUI
 import SwiftData
 
 struct HikeTypesSettingsView: View {
-    @Query(sort: \HikeType.sortOrder) private var hikeTypes: [HikeType]
+    @Query(sort: \HikeType.sortOrder) private var allHikeTypes: [HikeType]
+
+    /// Filter out system types (LAW-route) - these are managed elsewhere
+    private var hikeTypes: [HikeType] {
+        allHikeTypes.filter { $0.name != "LAW-route" }
+    }
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
     // State for inline adding
     @State private var newTypeName = ""
     @State private var newTypeIcon = "figure.walk"
+    @State private var isAddingNewType = false
 
     // State for expanded types
     @State private var expandedTypeIDs: Set<PersistentIdentifier> = []
@@ -16,7 +22,9 @@ struct HikeTypesSettingsView: View {
     private let availableIcons = [
         "figure.walk", "figure.hiking", "sun.max", "calendar",
         "building.2", "tree", "mountain.2", "beach.umbrella",
-        "signpost.right", "map", "location", "flag"
+        "signpost.right", "map", "location", "flag",
+        "leaf", "cloud.sun", "tent", "binoculars",
+        "dog", "camera"
     ]
 
     var body: some View {
@@ -145,6 +153,7 @@ struct HikeTypesSettingsView: View {
                         Image(systemName: type.iconName)
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(HDColors.forestGreen)
+                            .frame(width: 20)
 
                         Text(type.name)
                             .font(.system(size: 16, weight: .medium))
@@ -156,6 +165,7 @@ struct HikeTypesSettingsView: View {
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(HDColors.mutedGreen)
                     }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
 
@@ -200,38 +210,72 @@ struct HikeTypesSettingsView: View {
     // MARK: - Add Type Section
 
     private var addTypeSection: some View {
-        FormSection(title: "Nieuw type", icon: "plus") {
-            VStack(spacing: HDSpacing.md) {
-                HDTextField(
-                    "Bijv. Dagwandeling",
-                    text: $newTypeName,
-                    icon: "figure.walk"
-                )
-
-                // Icon picker
-                VStack(alignment: .leading, spacing: HDSpacing.sm) {
-                    Text("Icoon")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(HDColors.forestGreen)
-
-                    iconPickerGrid(selectedIcon: newTypeIcon) { icon in
-                        newTypeIcon = icon
-                    }
-                }
-
+        FormSection {
+            VStack(alignment: .leading, spacing: HDSpacing.sm) {
+                // Header row - clickable
                 Button {
-                    addType()
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isAddingNewType.toggle()
+                    }
                 } label: {
-                    Text("Toevoegen")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, HDSpacing.sm)
-                        .background(newTypeName.isEmpty ? HDColors.mutedGreen.opacity(0.5) : HDColors.forestGreen)
-                        .cornerRadius(HDSpacing.cornerRadiusSmall)
+                    HStack {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(HDColors.forestGreen)
+                            .frame(width: 20)
+
+                        Text("Nieuw type")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(HDColors.forestGreen)
+
+                        Spacer()
+
+                        Image(systemName: isAddingNewType ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(HDColors.mutedGreen)
+                    }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .disabled(newTypeName.isEmpty)
+
+                // Expanded content
+                if isAddingNewType {
+                    Divider()
+                        .background(HDColors.dividerColor)
+
+                    VStack(spacing: HDSpacing.md) {
+                        HDTextField(
+                            "Bijv. Dagwandeling",
+                            text: $newTypeName,
+                            icon: "figure.walk"
+                        )
+
+                        // Icon picker
+                        VStack(alignment: .leading, spacing: HDSpacing.sm) {
+                            Text("Icoon")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(HDColors.forestGreen)
+
+                            iconPickerGrid(selectedIcon: newTypeIcon) { icon in
+                                newTypeIcon = icon
+                            }
+                        }
+
+                        Button {
+                            addType()
+                        } label: {
+                            Text("Toevoegen")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, HDSpacing.sm)
+                                .background(newTypeName.isEmpty ? HDColors.mutedGreen.opacity(0.5) : HDColors.forestGreen)
+                                .cornerRadius(HDSpacing.cornerRadiusSmall)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(newTypeName.isEmpty)
+                    }
+                }
             }
         }
     }
@@ -265,10 +309,13 @@ struct HikeTypesSettingsView: View {
     // MARK: - Actions
 
     private func addType() {
+        // Find the highest sortOrder and add 1 to ensure new type is at the bottom
+        let maxSortOrder = allHikeTypes.map(\.sortOrder).max() ?? -1
+
         let newType = HikeType(
             name: newTypeName,
             iconName: newTypeIcon,
-            sortOrder: hikeTypes.count
+            sortOrder: maxSortOrder + 1
         )
 
         modelContext.insert(newType)
@@ -295,13 +342,15 @@ struct HikeTypesSettingsView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: HikeType.self, configurations: config)
 
-    let type1 = HikeType(name: "Dagwandeling", iconName: "sun.max", sortOrder: 0)
-    let type2 = HikeType(name: "Bergtocht", iconName: "mountain.2", sortOrder: 1)
-    let type3 = HikeType(name: "Stadswandeling", iconName: "building.2", sortOrder: 2)
+    let type1 = HikeType(name: "LAW-route", iconName: "signpost.right", sortOrder: 0)
+    let type2 = HikeType(name: "Dagwandeling", iconName: "sun.max", sortOrder: 1)
+    let type3 = HikeType(name: "Bergtocht", iconName: "mountain.2", sortOrder: 2)
+    let type4 = HikeType(name: "Stadswandeling", iconName: "building.2", sortOrder: 3)
 
     container.mainContext.insert(type1)
     container.mainContext.insert(type2)
     container.mainContext.insert(type3)
+    container.mainContext.insert(type4)
 
     return NavigationStack {
         HikeTypesSettingsView()

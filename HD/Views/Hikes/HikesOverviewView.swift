@@ -15,7 +15,8 @@ struct HikesOverviewView: View {
     @State private var showSettings = false
     @State private var showMap = false
     @State private var showFilterPanel = false
-    @State private var showActiveHikeAlert = false
+    @State private var showActiveHikePopup = false
+    @State private var navigateToActiveHike = false
     @State private var searchText = ""
     @State private var selectedTypes: Set<String> = []
     @State private var sortOption: SortOption = .dateDescending
@@ -96,7 +97,24 @@ struct HikesOverviewView: View {
 
                 // FAB overlay
                 fabOverlay
+
+                // Active hike popup overlay
+                if showActiveHikePopup, let activeHike = currentActiveHike {
+                    ActiveHikePopupView(
+                        hikeName: activeHike.name,
+                        onGoToHike: {
+                            showActiveHikePopup = false
+                            navigateToActiveHike = true
+                        },
+                        onCancel: {
+                            showActiveHikePopup = false
+                        }
+                    )
+                    .transition(.opacity)
+                    .zIndex(100)
+                }
             }
+            .animation(.easeInOut(duration: 0.2), value: showActiveHikePopup)
             .navigationBarHidden(true)
             .sheet(isPresented: $showNewHike) {
                 NewHikeView()
@@ -107,15 +125,10 @@ struct HikesOverviewView: View {
             .sheet(isPresented: $showMap) {
                 MapView()
             }
-            .alert("Actieve wandeling", isPresented: $showActiveHikeAlert) {
-                Button("Annuleren", role: .cancel) {}
-                if currentActiveHike != nil {
-                    Button("Ga naar actieve wandeling") {
-                        // Navigation happens via banner
-                    }
+            .navigationDestination(isPresented: $navigateToActiveHike) {
+                if let activeHike = currentActiveHike {
+                    ActiveHikeView(hike: activeHike)
                 }
-            } message: {
-                Text("Je hebt al een actieve wandeling. Voltooi deze eerst voordat je een nieuwe start.")
             }
             .onAppear {
                 validateActiveHike()
@@ -237,7 +250,9 @@ struct HikesOverviewView: View {
                 Spacer()
                 FloatingActionButton(icon: "plus") {
                     if appState.activeHikeID != nil {
-                        showActiveHikeAlert = true
+                        withAnimation {
+                            showActiveHikePopup = true
+                        }
                     } else {
                         showNewHike = true
                     }

@@ -13,10 +13,10 @@ struct SecondaryButton: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.clear)
-                .foregroundColor(isEnabled ? Color.accentColor : Color.gray)
+                .foregroundColor(isEnabled ? HDColors.forestGreen : Color.gray)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(isEnabled ? Color.accentColor : Color.gray.opacity(0.3), lineWidth: 2)
+                        .stroke(isEnabled ? HDColors.forestGreen : Color.gray.opacity(0.3), lineWidth: 2)
                 )
         }
         .disabled(!isEnabled)
