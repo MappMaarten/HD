@@ -34,7 +34,7 @@ struct EmptyStateView: View {
                     .multilineTextAlignment(.center)
 
                 Text(message)
-                    .hdSubtitle()
+                    .hdBody()
                     .multilineTextAlignment(.center)
             }
 

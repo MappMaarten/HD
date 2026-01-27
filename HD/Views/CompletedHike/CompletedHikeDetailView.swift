@@ -451,8 +451,7 @@ struct CompletedPhotoGridItem: View {
     }
 
     private func loadImage() {
-        guard let fileName = photo.localFileName else { return }
-        loadedImage = MediaStorageService.shared.loadImage(fileName: fileName)
+        loadedImage = photo.image
     }
 }
 
@@ -497,8 +496,7 @@ struct CompletedAudioRow: View {
     }
 
     private func togglePlayback() {
-        guard let fileName = recording.localFileName,
-              let url = MediaStorageService.shared.getFileURL(for: fileName, type: .audio) else {
+        guard let url = recording.temporaryFileURL else {
             return
         }
 

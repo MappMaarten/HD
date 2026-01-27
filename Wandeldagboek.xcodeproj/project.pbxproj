@@ -33,7 +33,6 @@
 		4FABD13B2F1D06C500BDDDCE /* Exceptions for "HD" folder in "HD" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Claude.MD,
 				Info.plist,
 			);
 			target = 4FABD1172F1D06C200BDDDCE /* HD */;
@@ -200,7 +199,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 4FABD1132F1D06C200BDDDCE /* Build configuration list for PBXProject "HD" */;
+			buildConfigurationList = 4FABD1132F1D06C200BDDDCE /* Build configuration list for PBXProject "Wandeldagboek" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -295,10 +294,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HD/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to take photos during your hike.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to record audio during your hike.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need permission to save photos to your library after taking them.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to attach photos to your hike diary.";
+				INFOPLIST_KEY_CFBundleDisplayName = Wandeldagboek;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Wandeldagboek gebruikt de camera zodat je tijdens je wandeling foto’s kunt maken die je beleving vastleggen.    ";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie om start- en eindpunten van je wandelingen vast te leggen en routes te ondersteunen.\n    ";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie tijdens het gebruik van de app om je wandelingen correct te registreren.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Wandeldagboek gebruikt de microfoon zodat je tijdens of na je wandeling audioverhalen en herinneringen kunt opnemen.\n    ";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "\n    Wandeldagboek slaat foto’s op in je fotobibliotheek wanneer je nieuwe beelden maakt of toevoegt aan een wandeling.\n    ";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Wandeldagboek gebruikt je foto’s om beelden toe te voegen aan je wandelingen en zo je herinneringen compleet te maken.\n    ";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -339,10 +341,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HD/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to take photos during your hike.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to record audio during your hike.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need permission to save photos to your library after taking them.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to attach photos to your hike diary.";
+				INFOPLIST_KEY_CFBundleDisplayName = Wandeldagboek;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Wandeldagboek gebruikt de camera zodat je tijdens je wandeling foto’s kunt maken die je beleving vastleggen.    ";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie om start- en eindpunten van je wandelingen vast te leggen en routes te ondersteunen.\n    ";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie tijdens het gebruik van de app om je wandelingen correct te registreren.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Wandeldagboek gebruikt de microfoon zodat je tijdens of na je wandeling audioverhalen en herinneringen kunt opnemen.\n    ";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "\n    Wandeldagboek slaat foto’s op in je fotobibliotheek wanneer je nieuwe beelden maakt of toevoegt aan een wandeling.\n    ";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Wandeldagboek gebruikt je foto’s om beelden toe te voegen aan je wandelingen en zo je herinneringen compleet te maken.\n    ";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -581,7 +586,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4FABD1132F1D06C200BDDDCE /* Build configuration list for PBXProject "HD" */ = {
+		4FABD1132F1D06C200BDDDCE /* Build configuration list for PBXProject "Wandeldagboek" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4FABD13F2F1D06C500BDDDCE /* Debug */,

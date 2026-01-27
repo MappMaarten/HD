@@ -13,6 +13,41 @@ final class AppState {
         }
     }
 
+    // MARK: - App Lifecycle
+    var lastAppOpenedTimestamp: Date? {
+        get {
+            let timestamp = UserDefaults.standard.double(forKey: "lastAppOpenedTimestamp")
+            return timestamp > 0 ? Date(timeIntervalSince1970: timestamp) : nil
+        }
+        set {
+            if let newValue {
+                UserDefaults.standard.set(newValue.timeIntervalSince1970, forKey: "lastAppOpenedTimestamp")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "lastAppOpenedTimestamp")
+            }
+        }
+    }
+
+    func shouldShowSplash() -> Bool {
+        // Only apply time-based splash AFTER onboarding
+        guard isOnboarded else { return false }
+
+        guard let lastOpened = lastAppOpenedTimestamp else {
+            // First time opening after onboarding completion
+            return true
+        }
+
+        // 24 hours = 86400 seconds
+        let splashThresholdSeconds: TimeInterval = 24 * 60 * 60
+        let timeSinceLastOpen = Date().timeIntervalSince(lastOpened)
+
+        return timeSinceLastOpen >= splashThresholdSeconds
+    }
+
+    func updateLastAppOpened() {
+        lastAppOpenedTimestamp = Date()
+    }
+
     // MARK: - Active Hike
     var activeHikeID: UUID? {
         didSet {
@@ -44,5 +79,6 @@ final class AppState {
 
     func completeOnboarding() {
         isOnboarded = true
+        updateLastAppOpened() // Mark as "just opened" so splash doesn't show immediately
     }
 }

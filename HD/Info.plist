@@ -2,49 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-
-    <!-- Background modes -->
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>remote-notification</string>
-    </array>
-
-    <!-- Microfoon -->
-    <key>NSMicrophoneUsageDescription</key>
-    <string>
-    Wandeldagboek gebruikt de microfoon zodat je tijdens of na je wandeling audioverhalen en herinneringen kunt opnemen.
-    </string>
-
-    <!-- Foto bibliotheek (lezen) -->
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>
-    Wandeldagboek gebruikt je foto’s om beelden toe te voegen aan je wandelingen en zo je herinneringen compleet te maken.
-    </string>
-
-    <!-- Foto bibliotheek (schrijven) -->
-    <key>NSPhotoLibraryAddUsageDescription</key>
-    <string>
-    Wandeldagboek slaat foto’s op in je fotobibliotheek wanneer je nieuwe beelden maakt of toevoegt aan een wandeling.
-    </string>
-
-    <!-- Camera -->
-    <key>NSCameraUsageDescription</key>
-    <string>
-    Wandeldagboek gebruikt de camera zodat je tijdens je wandeling foto’s kunt maken die je beleving vastleggen.
-    </string>
-
-    <!-- Locatie: altijd -->
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>
-    Wandeldagboek gebruikt je locatie om start- en eindpunten van je wandelingen vast te leggen en routes te ondersteunen.
-    </string>
-
-    <!-- Locatie: tijdens gebruik -->
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>
-    Wandeldagboek gebruikt je locatie tijdens het gebruik van de app om je wandelingen correct te registreren.
-    </string>
-
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
-

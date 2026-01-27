@@ -3,7 +3,6 @@ import SwiftData
 
 @Model
 final class HikeType {
-    // Voeg hier direct de default waarden toe
     var id: UUID = UUID()
     var name: String = ""
     var iconName: String = "figure.walk" // Een veilige default SF Symbol

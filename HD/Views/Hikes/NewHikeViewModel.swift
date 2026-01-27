@@ -61,12 +61,14 @@ final class NewHikeViewModel {
     }
 
     func updateNameFromType() {
-        // Auto-fill name based on type or LAW route
-        // Note: Etappe number is NOT included in name - it's shown separately in HikeCard
+        // Auto-fill name ONLY for LAW routes
+        // Regular hikes: leave name empty for user to fill
         if isLAWRoute, let lawRoute = selectedLAWRoute {
             name = lawRoute.name
-        } else if let hikeType = selectedHikeType, name.isEmpty {
-            name = hikeType.name
+        } else {
+            // For regular hikes: clear any auto-filled name
+            // User must explicitly type their hike name
+            name = ""
         }
     }
 

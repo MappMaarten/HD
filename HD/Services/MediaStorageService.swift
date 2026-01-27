@@ -1,121 +1,89 @@
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 #if canImport(UIKit)
 import UIKit
 #endif
 
-/// Service voor het opslaan van media files in app storage
+/// Utility voor media conversies
 final class MediaStorageService {
     static let shared = MediaStorageService()
 
-    private let fileManager = FileManager.default
+    private init() {}
 
-    private init() {
-        createDirectoriesIfNeeded()
+    // MARK: - Image Conversion
+
+    func imageToData(_ image: UIImage, compressionQuality: CGFloat = 0.8) -> Data? {
+        heicData(from: image, quality: compressionQuality) ?? image.jpegData(compressionQuality: compressionQuality)
     }
 
-    // MARK: - Directories
+    /// Downscale en comprimeer een UIImage voor opslag.
+    /// Schaalt de langste zijde naar maxDimension (alleen als het beeld groter is).
+    /// Gebruikt HEIC voor kleinere bestanden, met JPEG als fallback.
+    func compressImage(_ image: UIImage, maxDimension: CGFloat = 1000, quality: CGFloat = 0.5) -> Data? {
+        let size = image.size
+        let longestSide = max(size.width, size.height)
 
-    private func createDirectoriesIfNeeded() {
-        createDirectory(for: .photos)
-        createDirectory(for: .audio)
+        // Alleen downscalen als nodig
+        let targetImage: UIImage
+        if longestSide > maxDimension {
+            let scale = maxDimension / longestSide
+            let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+
+            let renderer = UIGraphicsImageRenderer(size: newSize)
+            targetImage = renderer.image { _ in
+                image.draw(in: CGRect(origin: .zero, size: newSize))
+            }
+        } else {
+            targetImage = image
+        }
+
+        // Probeer HEIC, fallback naar JPEG
+        let result = heicData(from: targetImage, quality: quality)
+            ?? targetImage.jpegData(compressionQuality: quality)
+        #if DEBUG
+        if let result {
+            print("[MediaStorage] Compressed image: \(result.count / 1024)KB")
+        }
+        #endif
+        return result
     }
 
-    private func createDirectory(for type: MediaType) {
-        guard let url = getDirectoryURL(for: type) else { return }
+    // MARK: - HEIC Encoding
 
-        if !fileManager.fileExists(atPath: url.path) {
-            try? fileManager.createDirectory(at: url, withIntermediateDirectories: true)
-        }
+    /// Encodeer een UIImage als HEIC data. Geeft nil terug als HEIC niet wordt ondersteund.
+    private func heicData(from image: UIImage, quality: CGFloat) -> Data? {
+        guard let cgImage = image.cgImage else { return nil }
+
+        let data = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            data as CFMutableData,
+            UTType.heic.identifier as CFString,
+            1,
+            nil
+        ) else { return nil }
+
+        let options: [CFString: Any] = [
+            kCGImageDestinationLossyCompressionQuality: quality
+        ]
+        CGImageDestinationAddImage(destination, cgImage, options as CFDictionary)
+
+        guard CGImageDestinationFinalize(destination) else { return nil }
+        return data as Data
     }
 
-    private func getDirectoryURL(for type: MediaType) -> URL? {
-        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return nil
-        }
+    // MARK: - Temp Audio File
 
-        switch type {
-        case .photos:
-            return documentsURL.appendingPathComponent("Photos")
-        case .audio:
-            return documentsURL.appendingPathComponent("Audio")
-        }
-    }
-
-    // MARK: - Save
-
-    func saveImage(_ image: UIImage, id: UUID = UUID()) -> String? {
-        guard let data = image.jpegData(compressionQuality: 0.8),
-              let directoryURL = getDirectoryURL(for: .photos) else {
-            return nil
-        }
-
-        let fileName = "\(id.uuidString).jpg"
-        let fileURL = directoryURL.appendingPathComponent(fileName)
+    func writeTempAudioFile(data: Data, id: UUID) -> URL? {
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent("\(id.uuidString).m4a")
 
         do {
             try data.write(to: fileURL)
-            return fileName
+            return fileURL
         } catch {
-            print("Error saving image: \(error)")
+            print("Error writing temp audio file: \(error)")
             return nil
         }
-    }
-
-    func saveAudioData(_ data: Data, id: UUID = UUID()) -> String? {
-        guard let directoryURL = getDirectoryURL(for: .audio) else {
-            return nil
-        }
-
-        let fileName = "\(id.uuidString).m4a"
-        let fileURL = directoryURL.appendingPathComponent(fileName)
-
-        do {
-            try data.write(to: fileURL)
-            return fileName
-        } catch {
-            print("Error saving audio: \(error)")
-            return nil
-        }
-    }
-
-    // MARK: - Load
-
-    func loadImage(fileName: String) -> UIImage? {
-        guard let directoryURL = getDirectoryURL(for: .photos) else {
-            return nil
-        }
-
-        let fileURL = directoryURL.appendingPathComponent(fileName)
-
-        guard let data = try? Data(contentsOf: fileURL) else {
-            return nil
-        }
-
-        return UIImage(data: data)
-    }
-
-    func getFileURL(for fileName: String, type: MediaType) -> URL? {
-        guard let directoryURL = getDirectoryURL(for: type) else {
-            return nil
-        }
-
-        return directoryURL.appendingPathComponent(fileName)
-    }
-
-    // MARK: - Delete
-
-    func deleteFile(fileName: String, type: MediaType) {
-        guard let fileURL = getFileURL(for: fileName, type: type) else {
-            return
-        }
-
-        try? fileManager.removeItem(at: fileURL)
-    }
-
-    // MARK: - Types
-
-    enum MediaType {
-        case photos
-        case audio
     }
 }

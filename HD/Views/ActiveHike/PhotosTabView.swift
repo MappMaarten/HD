@@ -268,32 +268,19 @@ struct PhotosTabView: View {
     private func addPhoto(image: UIImage) async {
         guard photos.count < maxPhotos else { return }
 
-        let photoId = UUID()
-
-        // Save image to disk
-        guard let fileName = MediaStorageService.shared.saveImage(image, id: photoId) else {
-            return
-        }
+        guard let data = MediaStorageService.shared.compressImage(image) else { return }
 
         let photo = PhotoMedia(
-            id: photoId,
-            localFileName: fileName,
+            imageData: data,
             sortOrder: photos.count
         )
 
-        // Link photo to hike
         photo.hike = viewModel.hike
-
         modelContext.insert(photo)
         viewModel.hike.updatedAt = Date()
     }
 
     private func deletePhoto(_ photo: PhotoMedia) {
-        // Delete file from disk
-        if let fileName = photo.localFileName {
-            MediaStorageService.shared.deleteFile(fileName: fileName, type: .photos)
-        }
-
         modelContext.delete(photo)
         viewModel.hike.updatedAt = Date()
 
@@ -405,8 +392,7 @@ struct PhotoSlotFilled: View {
     }
 
     private func loadImage() {
-        guard let fileName = photo.localFileName else { return }
-        loadedImage = MediaStorageService.shared.loadImage(fileName: fileName)
+        loadedImage = photo.image
     }
 }
 
@@ -491,8 +477,7 @@ struct PhotoDeleteConfirmationSheet: View {
     }
 
     private func loadImage() {
-        guard let fileName = photo.localFileName else { return }
-        loadedImage = MediaStorageService.shared.loadImage(fileName: fileName)
+        loadedImage = photo.image
     }
 }
 

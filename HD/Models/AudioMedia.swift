@@ -9,10 +9,8 @@ final class AudioMedia {
     var name: String = "Opname"
     var duration: Double = 0 // in seconds
 
-    // File reference
-    var localFileName: String? // Al optioneel, dus OK
-    var remoteURL: String?
-    var isUploaded: Bool = false
+    // Audio data (stored as CKAsset via CloudKit sync)
+    @Attribute(.externalStorage) var audioData: Data?
 
     // Metadata
     var latitude: Double?
@@ -20,7 +18,6 @@ final class AudioMedia {
     var sortOrder: Int = 0
 
     // Relationship
-    // Belangrijk: Relaties MOETEN optioneel zijn voor CloudKit integration
     var hike: Hike?
 
     // MARK: - Initializer
@@ -29,9 +26,7 @@ final class AudioMedia {
         createdAt: Date = Date(),
         name: String = "Opname",
         duration: Double = 0,
-        localFileName: String? = nil,
-        remoteURL: String? = nil,
-        isUploaded: Bool = false,
+        audioData: Data? = nil,
         latitude: Double? = nil,
         longitude: Double? = nil,
         sortOrder: Int = 0
@@ -40,9 +35,7 @@ final class AudioMedia {
         self.createdAt = createdAt
         self.name = name
         self.duration = duration
-        self.localFileName = localFileName
-        self.remoteURL = remoteURL
-        self.isUploaded = isUploaded
+        self.audioData = audioData
         self.latitude = latitude
         self.longitude = longitude
         self.sortOrder = sortOrder
@@ -55,12 +48,16 @@ final class AudioMedia {
         return String(format: "%d:%02d", minutes, seconds)
     }
 
-    var localFileURL: URL? {
-        guard let fileName = localFileName else { return nil }
-        let fileManager = FileManager.default
-        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return nil
+    var temporaryFileURL: URL? {
+        guard let audioData else { return nil }
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent("\(id.uuidString).m4a")
+
+        // Write to temp file if it doesn't exist yet
+        if !FileManager.default.fileExists(atPath: fileURL.path) {
+            try? audioData.write(to: fileURL)
         }
-        return documentsURL.appendingPathComponent("Audio").appendingPathComponent(fileName)
+
+        return fileURL
     }
 }

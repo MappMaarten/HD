@@ -83,6 +83,39 @@ struct HikesOverviewView: View {
             ZStack {
                 HDColors.cream.ignoresSafeArea()
 
+                // Subtle leaf decorations in corners
+                BackgroundLeafDecoration(
+                    size: 120,
+                    rotation: 15,
+                    opacity: 0.10,
+                    xOffset: 60,
+                    yOffset: 80
+                )
+
+                BackgroundLeafDecoration(
+                    size: 100,
+                    rotation: -20,
+                    opacity: 0.08,
+                    xOffset: -60,
+                    yOffset: 120
+                )
+
+                BackgroundLeafDecoration(
+                    size: 90,
+                    rotation: -10,
+                    opacity: 0.12,
+                    xOffset: 80,
+                    yOffset: -200
+                )
+
+                BackgroundLeafDecoration(
+                    size: 70,
+                    rotation: 25,
+                    opacity: 0.08,
+                    xOffset: -80,
+                    yOffset: -180
+                )
+
                 VStack(spacing: 0) {
                     customHeader
                     titleSection
@@ -221,24 +254,30 @@ struct HikesOverviewView: View {
     // MARK: - Empty States
 
     private var emptyState: some View {
-        EmptyStateView(
-            icon: "figure.hiking",
-            title: "Nog geen wandelingen",
-            message: "Start je eerste wandeling om je wandeldagboek te beginnen",
-            actionTitle: "Start Wandeling",
-            action: {
-                showNewHike = true
-            }
-        )
+        VStack {
+            Spacer()
+            EmptyStateView(
+                icon: "figure.hiking",
+                title: "Nog geen wandelingen",
+                message: "Start je eerste wandeling om je wandeldagboek te beginnen"
+            )
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptySearchState: some View {
-        EmptyStateView(
-            icon: "magnifyingglass",
-            title: "Geen resultaten",
-            message: "Probeer een andere zoekopdracht of pas je filters aan",
-            useCircularIcon: false
-        )
+        VStack {
+            Spacer()
+            EmptyStateView(
+                icon: "magnifyingglass",
+                title: "Geen resultaten",
+                message: "Probeer een andere zoekopdracht of pas je filters aan",
+                useCircularIcon: false
+            )
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - FAB Overlay
@@ -248,15 +287,18 @@ struct HikesOverviewView: View {
             Spacer()
             HStack {
                 Spacer()
-                FloatingActionButton(icon: "plus") {
-                    if appState.activeHikeID != nil {
-                        withAnimation {
-                            showActiveHikePopup = true
+                FloatingActionButton(
+                    icon: "plus",
+                    action: {
+                        if appState.activeHikeID != nil {
+                            withAnimation {
+                                showActiveHikePopup = true
+                            }
+                        } else {
+                            showNewHike = true
                         }
-                    } else {
-                        showNewHike = true
-                    }
-                }
+                    }, showPulse: allHikes.isEmpty
+                )
             }
         }
         .padding(.trailing, HDSpacing.fabMargin)
@@ -350,7 +392,7 @@ struct HikesOverviewView: View {
             }
         }
         .padding(HDSpacing.sm)
-        .background(HDColors.cardBackground)
+        .background(HDColors.cream)
         .cornerRadius(HDSpacing.cornerRadiusMedium)
         .shadow(color: Color.black.opacity(0.08), radius: 8, y: 4)
         .padding(.horizontal, HDSpacing.horizontalMargin)

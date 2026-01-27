@@ -28,6 +28,18 @@ enum HDColors {
     static let amberDark = Color(hex: "8B6914")      // Original dark amber for text
     static let recordingRed = Color(hex: "B83232")   // Dieper, warmer rood voor opname
 
+    // MARK: - Hike Type Colors
+    static let hikeTypeForest = Color(hex: "5A7349")         // Boswandeling - sage green (lichter, natuurlijker)
+    static let hikeTypeMountain = Color(hex: "7D6E5F")       // Bergwandeling - warm stone (lichter)
+    static let hikeTypeBeach = Color(hex: "6B9AAB")          // Strandwandeling - soft coastal blue
+    static let hikeTypeCity = Color(hex: "9B7B5C")           // Stadswandeling - warm terracotta
+    static let hikeTypePath = Color(hex: "A85E52")           // LAW-route - rusty terracotta (was schreeuwerig rood)
+    static let hikeTypeMeadow = Color(hex: "8BA867")         // Klompenpad - meadow green (natuurlijker)
+    static let hikeTypeHeather = Color(hex: "9B7B9D")        // Heidewandeling - soft purple (minder intens)
+    static let hikeTypeDune = Color(hex: "C4AD7F")           // Duinwandeling - sand beige (lichter)
+    static let hikeTypeNeighborhood = Color(hex: "8A8975")   // Blokje om - warm gray
+    static let hikeTypeGeneral = Color(hex: "7A8B6C")        // Dagwandeling - natural green
+
     // MARK: - Semantic Aliases
     static let background = cream
     static let primary = forestGreen

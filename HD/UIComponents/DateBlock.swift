@@ -47,6 +47,7 @@ struct DateBlock: View {
                 .font(.custom(HDTypography.handwrittenFont, size: 12))
                 .foregroundColor(HDColors.mutedGreen)
         }
+        .frame(minWidth: 33, maxWidth: 33)  // Force consistent width
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .background(

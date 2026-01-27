@@ -160,6 +160,18 @@ struct SettingsView: View {
                         .buttonStyle(.plain)
                     }
                 }
+
+                // Ontwikkelaars sectie
+                FormSection(title: "Ontwikkelaars", icon: "hammer") {
+                    NavigationLink(destination: DevToolsView()) {
+                        SettingsRow(
+                            icon: "hammer.fill",
+                            title: "Dev Tools",
+                            subtitle: "Voorbeelddata en test tools"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             .padding(.horizontal, HDSpacing.horizontalMargin)
             .padding(.bottom, HDSpacing.lg)

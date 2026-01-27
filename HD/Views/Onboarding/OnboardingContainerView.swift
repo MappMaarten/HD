@@ -75,6 +75,7 @@ private let onboardingPages: [OnboardingPage] = [
 struct OnboardingContainerView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @State private var currentPage = 0
 
     private var totalPages: Int { onboardingPages.count }
@@ -135,10 +136,14 @@ struct OnboardingContainerView: View {
 
     private func completeOnboarding() {
         Task {
-            _ = await NotificationService.shared.requestPermission()
+            let granted = await NotificationService.shared.requestPermission()
             await MainActor.run {
+                // Sync iOS permission with app settings
+                if granted {
+                    notificationsEnabled = true
+                }
                 appState.isOnboarded = true
-                dismiss()
+                // Setting isOnboarded triggers HDApp to re-render with HikesOverviewView
             }
         }
     }

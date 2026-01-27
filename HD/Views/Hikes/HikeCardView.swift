@@ -11,14 +11,42 @@ struct HikeCardView: View {
     let hike: Hike
 
     private var hikeTypeIcon: String {
-        switch hike.type.lowercased() {
+        let type = hike.type.lowercased()
+        switch type {
+        // Specifieke matches eerst
+        case let t where t.contains("klompen"): return "shoe.2.fill"
+        case let t where t.contains("blokje"): return "arrow.triangle.turn.up.right.circle.fill"
+        case let t where t.contains("law"): return "signpost.right.fill"
+
+        // Natuur types
         case let t where t.contains("bos"): return "tree.fill"
         case let t where t.contains("berg"): return "mountain.2.fill"
         case let t where t.contains("strand"): return "beach.umbrella.fill"
-        case let t where t.contains("stad"): return "building.2.fill"
         case let t where t.contains("hei"): return "leaf.fill"
         case let t where t.contains("duin"): return "wind"
+
+        // Urban/generic
+        case let t where t.contains("stad"): return "building.2.fill"
+        case let t where t.contains("dag"): return "sun.max.fill"
+
         default: return "figure.walk"
+        }
+    }
+
+    private var hikeTypeColor: Color {
+        let type = hike.type.lowercased()
+        switch type {
+        case let t where t.contains("bos"): return HDColors.hikeTypeForest
+        case let t where t.contains("berg"): return HDColors.hikeTypeMountain
+        case let t where t.contains("strand"): return HDColors.hikeTypeBeach
+        case let t where t.contains("stad"): return HDColors.hikeTypeCity
+        case let t where t.contains("law"): return HDColors.hikeTypePath
+        case let t where t.contains("klompen"): return HDColors.hikeTypeMeadow
+        case let t where t.contains("hei"): return HDColors.hikeTypeHeather
+        case let t where t.contains("duin"): return HDColors.hikeTypeDune
+        case let t where t.contains("blokje"): return HDColors.hikeTypeNeighborhood
+        case let t where t.contains("dag"): return HDColors.hikeTypeGeneral
+        default: return HDColors.mutedGreen
         }
     }
 
@@ -31,6 +59,14 @@ struct HikeCardView: View {
             return "\(hours)u \(minutes)m"
         } else {
             return "\(minutes)m"
+        }
+    }
+
+    private func locationText(start: String, end: String?) -> String {
+        if let end = end, end != start {
+            return "\(start) → \(end)"
+        } else {
+            return start
         }
     }
 
@@ -51,21 +87,30 @@ struct HikeCardView: View {
                         Text(hike.type)
                             .font(.custom(HDTypography.handwrittenFont, size: 14))
                     }
-                    .foregroundColor(HDColors.mutedGreen)
+                    .foregroundColor(hikeTypeColor)
                 }
 
                 Spacer(minLength: 0)
 
                 // Etappe badge (if LAW route)
                 if let stageNumber = hike.lawStageNumber {
-                    Text("Etappe \(stageNumber)")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(HDColors.amber)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(HDColors.amber.opacity(0.15))
-                        .cornerRadius(12)
+                    HStack(spacing: 3) {
+                        Image(systemName: "signpost.right.fill")
+                            .font(.system(size: 10))
+                        Text("Etappe \(stageNumber)")
+                            .font(.custom(HDTypography.handwrittenFont, size: 14))
+                    }
+                    .foregroundColor(HDColors.forestGreen)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(HDColors.sageGreen.opacity(0.15))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(HDColors.mutedGreen.opacity(0.25), lineWidth: 1)
+                    )
                 }
 
                 Image(systemName: "chevron.right")
@@ -84,11 +129,11 @@ struct HikeCardView: View {
 
                 // Middle: Info
                 VStack(alignment: .leading, spacing: 6) {
-                    // Location
-                    if let location = hike.startLocationName {
-                        Label(location, systemImage: "mappin.circle.fill")
+                    // Location - met start → end notatie indien beide aanwezig
+                    if let startLocation = hike.startLocationName {
+                        Label(locationText(start: startLocation, end: hike.endLocationName), systemImage: "mappin.circle.fill")
                             .font(.subheadline)
-                            .foregroundColor(HDColors.amber)
+                            .foregroundColor(HDColors.mutedGreen)
                             .lineLimit(1)
                     }
 
@@ -96,15 +141,8 @@ struct HikeCardView: View {
                     if !hike.companions.isEmpty {
                         Label(hike.companions, systemImage: "person.2.fill")
                             .font(.subheadline)
-                            .foregroundColor(HDColors.amber)
+                            .foregroundColor(HDColors.mutedGreen)
                             .lineLimit(1)
-                    }
-
-                    // Distance
-                    if let distance = hike.distance {
-                        Label(String(format: "%.1f km", distance), systemImage: "figure.walk")
-                            .font(.subheadline)
-                            .foregroundColor(HDColors.amber)
                     }
 
                     // Stats chips for completed hikes
@@ -141,35 +179,47 @@ struct HikeCardView: View {
 
     @ViewBuilder
     private var statsChipsRow: some View {
-        HStack(spacing: 6) {
-            if let duration = formattedDuration {
-                statChip(icon: "clock", text: duration)
+        VStack(alignment: .leading, spacing: 4) {
+            // Row 1: Time + Distance (with text labels)
+            HStack(spacing: 6) {
+                if let duration = formattedDuration {
+                    statChip(icon: "clock", text: duration)
+                }
+
+                if let distance = hike.distance {
+                    statChip(icon: "figure.walk", text: String(format: "%.1f km", distance))
+                }
             }
 
-            if let rating = hike.rating {
-                statChip(icon: "star.fill", text: "\(rating)")
-            }
+            // Row 2: Media indicators (icon-only chips)
+            HStack(spacing: 6) {
+                let photoCount = hike.photos?.count ?? 0
+                if photoCount > 0 {
+                    statChip(icon: "camera.fill", text: nil)
+                }
 
-            let photoCount = hike.photos?.count ?? 0
-            if photoCount > 0 {
-                statChip(icon: "camera.fill", text: "\(photoCount)")
-            }
+                let audioCount = hike.audioRecordings?.count ?? 0
+                if audioCount > 0 {
+                    statChip(icon: "waveform", text: nil)
+                }
 
-            let audioCount = hike.audioRecordings?.count ?? 0
-            if audioCount > 0 {
-                statChip(icon: "waveform", text: "\(audioCount)")
+                if !hike.reflection.isEmpty {
+                    statChip(icon: "sparkles", text: nil)
+                }
             }
         }
     }
 
-    private func statChip(icon: String, text: String) -> some View {
+    private func statChip(icon: String, text: String?) -> some View {
         HStack(spacing: 3) {
             Image(systemName: icon)
-            Text(text)
+            if let text = text {
+                Text(text)
+            }
         }
         .font(.caption)
         .foregroundColor(HDColors.mutedGreen)
-        .padding(.horizontal, 8)
+        .padding(.horizontal, text == nil ? 6 : 8)
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 10)

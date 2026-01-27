@@ -254,21 +254,14 @@ struct AudioTabView: View {
             return
         }
 
-        let audioId = UUID()
-        guard let fileName = MediaStorageService.shared.saveAudioData(data, id: audioId) else {
-            pendingRecording = nil
-            return
-        }
-
         let finalName = name.trimmingCharacters(in: .whitespaces).isEmpty
             ? "Opname \(audioRecordings.count + 1)"
             : name
 
         let recording = AudioMedia(
-            id: audioId,
             name: finalName,
             duration: result.duration,
-            localFileName: fileName,
+            audioData: data,
             sortOrder: audioRecordings.count
         )
 
@@ -281,10 +274,6 @@ struct AudioTabView: View {
     }
 
     private func deleteRecording(_ recording: AudioMedia) {
-        if let fileName = recording.localFileName {
-            MediaStorageService.shared.deleteFile(fileName: fileName, type: .audio)
-        }
-
         modelContext.delete(recording)
         viewModel.hike.updatedAt = Date()
     }
@@ -455,17 +444,9 @@ struct AudioRecordingRow: View {
                         .foregroundColor(HDColors.forestGreen)
                         .lineLimit(1)
 
-                    HStack(spacing: HDSpacing.xs) {
-                        Text(formattedTimestamp(recording.createdAt))
-                            .font(.caption)
-                            .foregroundColor(HDColors.mutedGreen)
-
-                        if recording.isUploaded {
-                            Image(systemName: "checkmark.icloud")
-                                .font(.caption2)
-                                .foregroundColor(HDColors.forestGreen.opacity(0.7))
-                        }
-                    }
+                    Text(formattedTimestamp(recording.createdAt))
+                        .font(.caption)
+                        .foregroundColor(HDColors.mutedGreen)
                 }
 
                 Spacer()
@@ -556,8 +537,7 @@ struct AudioRecordingRow: View {
     }
 
     private func togglePlayback() {
-        guard let fileName = recording.localFileName,
-              let url = MediaStorageService.shared.getFileURL(for: fileName, type: .audio) else {
+        guard let url = recording.temporaryFileURL else {
             return
         }
 

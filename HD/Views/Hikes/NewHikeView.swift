@@ -204,19 +204,54 @@ struct NewHikeView: View {
 
     private var detailsContent: some View {
         VStack(spacing: HDSpacing.md) {
+            // Name field - conditional rendering based on LAW route
             VStack(alignment: .leading, spacing: HDSpacing.xs) {
-                HDTextField(
-                    "Naam van je wandeling *",
-                    text: $viewModel.name
-                )
+                if viewModel.isLAWRoute {
+                    // LAW route: Show name as read-only text
+                    VStack(alignment: .leading, spacing: HDSpacing.xs) {
+                        Text("Naam van je wandeling")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(HDColors.forestGreen)
 
-                if viewModel.hasAttemptedStart, let error = viewModel.nameError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
+                        HStack(spacing: HDSpacing.sm) {
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(HDColors.mutedGreen)
+                                .font(.subheadline)
+                                .frame(width: 20)
+
+                            Text(viewModel.name)
+                                .foregroundColor(HDColors.forestGreen)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.horizontal, HDSpacing.md)
+                        .padding(.vertical, HDSpacing.sm + 2)
+                        .background(Color.white.opacity(0.3))
+                        .cornerRadius(HDSpacing.cornerRadiusSmall)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusSmall)
+                                .stroke(HDColors.dividerColor.opacity(0.2), lineWidth: 1)
+                        )
+
+                        Text("Naam wordt automatisch overgenomen van de geselecteerde LAW-route")
+                            .font(.caption)
+                            .foregroundColor(HDColors.mutedGreen)
+                    }
+                } else {
+                    // Regular hike: Show editable text field
+                    HDTextField(
+                        "Naam van je wandeling *",
+                        text: $viewModel.name
+                    )
+
+                    if viewModel.hasAttemptedStart, let error = viewModel.nameError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
                 }
             }
 
+            // Companions field (always visible and editable)
             HDTextField(
                 "Gezelschap (optioneel)",
                 text: $viewModel.companions,

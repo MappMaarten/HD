@@ -9,8 +9,8 @@ import SwiftUI
 
 struct SplashView: View {
     @Environment(AppState.self) private var appState
-    @State private var navigateToNext = false
     @State private var opacity: Double = 0
+    let isPostOnboarding: Bool
 
     var body: some View {
         ZStack {
@@ -43,13 +43,23 @@ struct SplashView: View {
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                navigateToNext = true
+                if isPostOnboarding {
+                    // After onboarding: navigate to overview
+                    appState.navigationPath.append("overview")
+                } else {
+                    // During onboarding: navigate to onboarding
+                    appState.navigationPath.append("onboarding")
+                }
             }
         }
-        .fullScreenCover(isPresented: $navigateToNext) {
-            if appState.isOnboarded {
+        .navigationDestination(for: String.self) { destination in
+            switch destination {
+            case "onboarding":
+                OnboardingContainerView()
+            case "overview":
                 HikesOverviewView()
-            } else {
+            default:
+                // Fallback: redirect to onboarding if destination invalid
                 OnboardingContainerView()
             }
         }
@@ -57,6 +67,6 @@ struct SplashView: View {
 }
 
 #Preview {
-    SplashView()
+    SplashView(isPostOnboarding: false)
         .environment(AppState())
 }

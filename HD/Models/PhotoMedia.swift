@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 @Model
 final class PhotoMedia {
@@ -8,10 +9,8 @@ final class PhotoMedia {
     var createdAt: Date = Date()
     var caption: String = ""
 
-    // File reference
-    var localFileName: String?
-    var remoteURL: String?
-    var isUploaded: Bool = false
+    // Image data (stored as CKAsset via CloudKit sync)
+    @Attribute(.externalStorage) var imageData: Data?
 
     // Metadata
     var latitude: Double?
@@ -19,7 +18,6 @@ final class PhotoMedia {
     var sortOrder: Int = 0
 
     // Relationship
-    // Al optioneel, dus dit is correct voor CloudKit
     var hike: Hike?
 
     // MARK: - Initializer
@@ -27,9 +25,7 @@ final class PhotoMedia {
         id: UUID = UUID(),
         createdAt: Date = Date(),
         caption: String = "",
-        localFileName: String? = nil,
-        remoteURL: String? = nil,
-        isUploaded: Bool = false,
+        imageData: Data? = nil,
         latitude: Double? = nil,
         longitude: Double? = nil,
         sortOrder: Int = 0
@@ -37,23 +33,15 @@ final class PhotoMedia {
         self.id = id
         self.createdAt = createdAt
         self.caption = caption
-        self.localFileName = localFileName
-        self.remoteURL = remoteURL
-        self.isUploaded = isUploaded
+        self.imageData = imageData
         self.latitude = latitude
         self.longitude = longitude
         self.sortOrder = sortOrder
     }
 
     // MARK: - Helpers
-    var localFileURL: URL? {
-        guard let fileName = localFileName else { return nil }
-
-        let fileManager = FileManager.default
-        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return nil
-        }
-
-        return documentsURL.appendingPathComponent("Photos").appendingPathComponent(fileName)
+    var image: UIImage? {
+        guard let imageData else { return nil }
+        return UIImage(data: imageData)
     }
 }
