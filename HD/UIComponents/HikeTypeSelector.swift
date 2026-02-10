@@ -17,10 +17,17 @@ struct HikeTypeSelector: View {
             showSheet = true
         } label: {
             HStack(spacing: HDSpacing.sm) {
-                // Icon
+                // Color indicator dot
+                if let selectedType = selectedType {
+                    Circle()
+                        .fill(selectedType.displayColor)
+                        .frame(width: 10, height: 10)
+                }
+
+                // Icon with type color
                 Image(systemName: selectedType?.iconName ?? "figure.walk")
                     .font(.body.weight(.medium))
-                    .foregroundColor(HDColors.forestGreen)
+                    .foregroundColor(selectedType?.displayColor ?? HDColors.mutedGreen)
                     .frame(width: 24)
 
                 // Selected type name
@@ -107,9 +114,15 @@ private struct HikeTypeSelectorSheet: View {
             }
         } label: {
             HStack(spacing: HDSpacing.sm) {
-                // Icon
+                // Colored vertical accent bar
+                Rectangle()
+                    .fill(type.displayColor)
+                    .frame(width: 4)
+                    .cornerRadius(2)
+
+                // Icon with type color
                 Image(systemName: type.iconName)
-                    .foregroundColor(HDColors.forestGreen)
+                    .foregroundColor(type.displayColor)
                     .frame(width: 24)
 
                 // Type name
@@ -118,15 +131,16 @@ private struct HikeTypeSelectorSheet: View {
 
                 Spacer()
 
-                // Checkmark for selected
+                // Checkmark with type color
                 if isSelected {
-                    Image(systemName: "checkmark")
+                    Image(systemName: "checkmark.circle.fill")
                         .font(.body.weight(.semibold))
-                        .foregroundColor(HDColors.forestGreen)
+                        .foregroundColor(type.displayColor)
                 }
             }
             .font(.body)
             .padding(.vertical, HDSpacing.md)
+            .background(isSelected ? type.displayColor.opacity(0.08) : Color.clear)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -138,7 +152,7 @@ private struct HikeTypeSelectorSheet: View {
         HikeTypeSelector(
             types: [
                 HikeType(name: "Dagwandeling", iconName: "figure.walk"),
-                HikeType(name: "LAW-route", iconName: "map"),
+                HikeType(name: "LAW", iconName: "map"),
                 HikeType(name: "Stadswandeling", iconName: "building.2"),
                 HikeType(name: "Boswandeling", iconName: "tree")
             ],
@@ -148,11 +162,11 @@ private struct HikeTypeSelectorSheet: View {
         HikeTypeSelector(
             types: [
                 HikeType(name: "Dagwandeling", iconName: "figure.walk"),
-                HikeType(name: "LAW-route", iconName: "map"),
+                HikeType(name: "LAW", iconName: "map"),
                 HikeType(name: "Stadswandeling", iconName: "building.2"),
                 HikeType(name: "Boswandeling", iconName: "tree")
             ],
-            selectedType: .constant(HikeType(name: "LAW-route", iconName: "map"))
+            selectedType: .constant(HikeType(name: "LAW", iconName: "map"))
         )
     }
     .padding(HDSpacing.horizontalMargin)

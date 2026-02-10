@@ -6,7 +6,7 @@ struct HikeTypesSettingsView: View {
 
     /// Filter out system types (LAW-route) - these are managed elsewhere
     private var hikeTypes: [HikeType] {
-        allHikeTypes.filter { $0.name != "LAW-route" }
+        allHikeTypes.filter { $0.name != "LAW" }
     }
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -32,6 +32,7 @@ struct HikeTypesSettingsView: View {
             HDColors.cream.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                backButton
                 titleSection
                 explanationSection
 
@@ -42,23 +43,26 @@ struct HikeTypesSettingsView: View {
                 }
             }
         }
-        .navigationBarBackButtonHidden(true)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text("Terug")
-                            .font(.system(size: 16))
-                    }
+        .navigationBarHidden(true)
+    }
+
+    // MARK: - Back Button
+
+    private var backButton: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(HDColors.forestGreen)
-                }
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            Spacer()
         }
+        .padding(.horizontal, HDSpacing.horizontalMargin - 12)
+        .padding(.top, HDSpacing.sm)
     }
 
     // MARK: - Title Section
@@ -342,7 +346,7 @@ struct HikeTypesSettingsView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: HikeType.self, configurations: config)
 
-    let type1 = HikeType(name: "LAW-route", iconName: "signpost.right", sortOrder: 0)
+    let type1 = HikeType(name: "LAW", iconName: "signpost.right", sortOrder: 0)
     let type2 = HikeType(name: "Dagwandeling", iconName: "sun.max", sortOrder: 1)
     let type3 = HikeType(name: "Bergtocht", iconName: "mountain.2", sortOrder: 2)
     let type4 = HikeType(name: "Stadswandeling", iconName: "building.2", sortOrder: 3)

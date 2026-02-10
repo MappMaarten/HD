@@ -283,7 +283,7 @@ struct StatView: View {
     let lawHike = Hike(
         status: "completed",
         name: "Pieterpad",
-        type: "LAW-route",
+        type: "LAW",
         companions: "Alleen",
         startLocationName: "Groningen",
         startTime: Calendar.current.date(byAdding: .day, value: -5, to: Date())!,

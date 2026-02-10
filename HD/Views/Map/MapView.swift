@@ -424,7 +424,7 @@ struct InfoItem: View {
         HikeType(name: "Boswandeling", iconName: "tree", sortOrder: 3),
         HikeType(name: "Bergwandeling", iconName: "mountain.2", sortOrder: 4),
         HikeType(name: "Strandwandeling", iconName: "beach.umbrella", sortOrder: 5),
-        HikeType(name: "LAW-route", iconName: "signpost.right", sortOrder: 6)
+        HikeType(name: "LAW", iconName: "signpost.right", sortOrder: 6)
     ]
     types.forEach { container.mainContext.insert($0) }
 

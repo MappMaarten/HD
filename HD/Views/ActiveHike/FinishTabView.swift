@@ -66,6 +66,7 @@ struct FinishTabView: View {
                         .padding(.top, HDSpacing.md)
                         .padding(.bottom, 120)
                     }
+                    .scrollDismissesKeyboard(.interactively)
 
                     // Sticky bottom button
                     stickyButton
@@ -74,12 +75,22 @@ struct FinishTabView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(HDColors.cream, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .overlay {
-                if showCompletionOverlay {
-                    HikeCompletionOverlay {
-                        dismiss()
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button {
+                        hideKeyboard()
+                    } label: {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 16, weight: .semibold))
                     }
+                    .foregroundColor(HDColors.forestGreen)
                 }
+            }
+        }
+        .fullScreenCover(isPresented: $showCompletionOverlay) {
+            HikeCompletionOverlay {
+                dismiss()
             }
         }
         .onAppear {
@@ -131,17 +142,21 @@ struct FinishTabView: View {
                     .font(.caption)
                     .foregroundColor(.red)
             } else if locationService.fetchedLatitude != nil, locationService.fetchedLongitude != nil {
-                HStack(spacing: HDSpacing.xs) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(HDColors.forestGreen)
-                    Text("GPS coördinaten opgeslagen")
-                        .font(.caption)
-                        .foregroundColor(HDColors.mutedGreen)
-                }
-            } else {
-                Text("Typ handmatig of gebruik \(Image(systemName: "location.fill")) voor GPS")
+                Text("GPS coördinaten opgeslagen")
                     .font(.caption)
-                    .foregroundColor(HDColors.mutedGreen)
+                    .foregroundColor(HDColors.forestGreen)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(HDSpacing.sm)
+                    .background(HDColors.forestGreen.opacity(0.05))
+                    .cornerRadius(HDSpacing.cornerRadiusSmall)
+            } else {
+                HStack(spacing: 4) {
+                    Image(systemName: "info.circle")
+                        .font(.caption2)
+                    Text("Tik op \(Image(systemName: "location.fill")) om je huidige locatie op te halen")
+                        .font(.caption)
+                }
+                .foregroundColor(HDColors.mutedGreen.opacity(0.8))
             }
         }
     }
@@ -287,6 +302,13 @@ struct FinishTabView: View {
         UserDefaults.standard.set(endTime.timeIntervalSince1970, forKey: "lastCompletedHikeDate")
 
         showCompletionOverlay = true
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil, from: nil, for: nil
+        )
     }
 }
 

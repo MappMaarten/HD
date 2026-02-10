@@ -12,8 +12,11 @@ struct HikeCompletionOverlay: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            Color.black.opacity(0.75)
                 .ignoresSafeArea()
+                .onTapGesture {
+                    // Intentionally empty - blocks tap-through
+                }
 
             VStack(spacing: HDSpacing.lg) {
                 CircularIconView(icon: "checkmark", size: 100, animateRings: true)

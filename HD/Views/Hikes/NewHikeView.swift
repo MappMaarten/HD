@@ -51,12 +51,13 @@ struct NewHikeView: View {
                         }
                         .padding(.horizontal, HDSpacing.horizontalMargin)
                         .padding(.top, HDSpacing.md)
-                        .padding(.bottom, 120)
+                        .padding(.bottom, HDSpacing.lg)
                     }
 
                     // Sticky bottom button
                     stickyButton
                 }
+                .ignoresSafeArea(.keyboard)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(HDColors.cream, for: .navigationBar)
@@ -66,6 +67,7 @@ struct NewHikeView: View {
                     Button("Annuleer") {
                         dismiss()
                     }
+                    .fontWeight(.semibold)
                     .foregroundColor(HDColors.forestGreen)
                 }
             }
@@ -75,16 +77,18 @@ struct NewHikeView: View {
     // MARK: - Journal Header
 
     private var journalHeader: some View {
-        VStack(alignment: .leading, spacing: HDSpacing.xs) {
+        HStack(alignment: .center, spacing: HDSpacing.sm) {
             Text("Nieuwe wandeling")
-                .font(.custom("Georgia-Bold", size: 28))
+                .font(.custom("Georgia-Bold", size: 24))
                 .foregroundColor(HDColors.forestGreen)
 
-            Text(Date().formatted(.dateTime.day().month(.wide).year()))
-                .font(.custom("Georgia-Italic", size: 15))
-                .foregroundColor(HDColors.mutedGreen)
+            Spacer()
+
+            Text(Date().formatted(.dateTime.day().month(.abbreviated)))
+                .font(.custom("Georgia-Italic", size: 13))
+                .foregroundColor(HDColors.mutedGreen.opacity(0.7))
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
         .padding(.top, HDSpacing.md)
     }
 
@@ -127,7 +131,7 @@ struct NewHikeView: View {
                     .foregroundColor(HDColors.forestGreen)
 
                 if lawRoutes.isEmpty {
-                    Text("Voeg LAW routes toe in Instellingen")
+                    Text("Voeg eerst LAW routes toe in Instellingen")
                         .foregroundColor(HDColors.mutedGreen)
                         .font(.caption)
                 } else {
@@ -239,7 +243,7 @@ struct NewHikeView: View {
                 } else {
                     // Regular hike: Show editable text field
                     HDTextField(
-                        "Naam van je wandeling *",
+                        "Naam van je wandeling",
                         text: $viewModel.name
                     )
 
@@ -253,9 +257,8 @@ struct NewHikeView: View {
 
             // Companions field (always visible and editable)
             HDTextField(
-                "Gezelschap (optioneel)",
-                text: $viewModel.companions,
-                icon: "person.2"
+                "Gezelschap",
+                text: $viewModel.companions
             )
         }
     }
@@ -281,17 +284,21 @@ struct NewHikeView: View {
                     .font(.caption)
                     .foregroundColor(.red)
             } else if viewModel.startLatitude != nil, viewModel.startLongitude != nil {
-                HStack(spacing: HDSpacing.xs) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(HDColors.forestGreen)
-                    Text("GPS coördinaten opgeslagen")
-                        .font(.caption)
-                        .foregroundColor(HDColors.mutedGreen)
-                }
-            } else {
-                Text("Typ handmatig of gebruik \(Image(systemName: "location.fill")) voor GPS")
+                Text("GPS coördinaten opgeslagen - wordt toegevoegd aan je wandelingenkaart")
                     .font(.caption)
-                    .foregroundColor(HDColors.mutedGreen)
+                    .foregroundColor(HDColors.forestGreen)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(HDSpacing.sm)
+                    .background(HDColors.forestGreen.opacity(0.05))
+                    .cornerRadius(HDSpacing.cornerRadiusSmall)
+            } else {
+                HStack(spacing: 4) {
+                    Image(systemName: "info.circle")
+                        .font(.caption2)
+                    Text("Tik op \(Image(systemName: "location.fill")) om je huidige locatie op te halen en toe te voegen aan je kaart")
+                        .font(.caption)
+                }
+                .foregroundColor(HDColors.mutedGreen.opacity(0.8))
             }
         }
     }

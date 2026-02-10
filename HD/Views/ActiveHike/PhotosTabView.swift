@@ -11,7 +11,6 @@ struct PhotosTabView: View {
     @State private var showCameraPicker = false
     @State private var showPhotoPicker = false
     @State private var photoToDelete: PhotoMedia?
-    @State private var showDeleteSheet = false
 
     private let maxPhotos = 5
 
@@ -47,7 +46,7 @@ struct PhotosTabView: View {
                 await addPhotos(from: newItems)
             }
         }
-        .sheet(isPresented: $showCameraPicker) {
+        .fullScreenCover(isPresented: $showCameraPicker) {
             CameraImagePicker { image in
                 if let image = image {
                     Task {
@@ -62,24 +61,20 @@ struct PhotosTabView: View {
             maxSelectionCount: maxPhotos - photos.count,
             matching: .images
         )
-        .sheet(isPresented: $showDeleteSheet) {
-            if let photo = photoToDelete {
-                PhotoDeleteConfirmationSheet(
-                    photoIndex: (photos.firstIndex(where: { $0.id == photo.id }) ?? 0) + 1,
-                    photo: photo,
-                    onDelete: {
-                        deletePhoto(photo)
-                        photoToDelete = nil
-                        showDeleteSheet = false
-                    },
-                    onCancel: {
-                        photoToDelete = nil
-                        showDeleteSheet = false
-                    }
-                )
-                .presentationDetents([.height(340)])
-                .presentationDragIndicator(.visible)
-            }
+        .sheet(item: $photoToDelete) { photo in
+            PhotoDeleteConfirmationSheet(
+                photoIndex: (photos.firstIndex(where: { $0.id == photo.id }) ?? 0) + 1,
+                photo: photo,
+                onDelete: {
+                    deletePhoto(photo)
+                    photoToDelete = nil
+                },
+                onCancel: {
+                    photoToDelete = nil
+                }
+            )
+            .presentationDetents([.height(340)])
+            .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Foto toevoegen", isPresented: $showImageSourcePicker) {
             Button("Camera") {
@@ -183,7 +178,6 @@ struct PhotosTabView: View {
                         slotNumber: index + 1,
                         onDelete: {
                             photoToDelete = photos[index]
-                            showDeleteSheet = true
                         }
                     )
                 } else {
@@ -490,6 +484,7 @@ struct CameraImagePicker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = .camera
+        picker.modalPresentationStyle = .fullScreen
         picker.delegate = context.coordinator
         return picker
     }

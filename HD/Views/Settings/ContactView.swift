@@ -18,6 +18,7 @@ struct ContactView: View {
             HDColors.cream.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                backButton
                 titleSection
 
                 ScrollView {
@@ -31,23 +32,26 @@ struct ContactView: View {
                 buttonSection
             }
         }
-        .navigationBarBackButtonHidden(true)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text("Terug")
-                            .font(.system(size: 16))
-                    }
+        .navigationBarHidden(true)
+    }
+
+    // MARK: - Back Button
+
+    private var backButton: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(HDColors.forestGreen)
-                }
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            Spacer()
         }
+        .padding(.horizontal, HDSpacing.horizontalMargin - 12)
+        .padding(.top, HDSpacing.sm)
     }
 
     // MARK: - Title Section

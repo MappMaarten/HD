@@ -25,7 +25,7 @@ final class NewHikeViewModel {
     let locationService = LocationService()
 
     var isLAWRoute: Bool {
-        selectedHikeType?.name == "LAW-route"
+        selectedHikeType?.name.lowercased().contains("law") ?? false
     }
 
     var isValid: Bool {
