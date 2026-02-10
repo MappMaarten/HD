@@ -34,7 +34,7 @@ struct DateBlock: View {
         VStack(spacing: 2) {
             // Weekday (small handwritten)
             Text(weekdayShort)
-                .font(.custom(HDTypography.handwrittenFont, size: 10))
+                .font(.custom(HDTypography.handwrittenFont, size: 13))
                 .foregroundColor(HDColors.mutedGreen)
 
             // Day number (large handwritten)
@@ -44,10 +44,10 @@ struct DateBlock: View {
 
             // Month (small handwritten)
             Text(monthAbbreviation)
-                .font(.custom(HDTypography.handwrittenFont, size: 12))
+                .font(.custom(HDTypography.handwrittenFont, size: 13))
                 .foregroundColor(HDColors.mutedGreen)
         }
-        .frame(minWidth: 33, maxWidth: 33)  // Force consistent width
+        .frame(minWidth: 38, maxWidth: 38)  // Force consistent width
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .background(

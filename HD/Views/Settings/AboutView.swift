@@ -1,14 +1,12 @@
+import StoreKit
 import SwiftUI
 
 struct AboutView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.requestReview) private var requestReview
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-    }
-
-    private var buildNumber: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 
     var body: some View {
@@ -21,10 +19,10 @@ struct AboutView: View {
 
                 ScrollView {
                     VStack(spacing: HDSpacing.md) {
-                        versionSection
-                        madeBySection
-                        personalNoteSection
                         brandingSection
+                        personalNoteSection
+                        rateAppSection
+                        versionSection
                     }
                     .padding(.horizontal, HDSpacing.horizontalMargin)
                     .padding(.bottom, HDSpacing.lg)
@@ -70,44 +68,13 @@ struct AboutView: View {
 
     private var versionSection: some View {
         FormSection(title: "App informatie", icon: "info.circle") {
-            VStack(spacing: HDSpacing.sm) {
-                HStack {
-                    Text("Versie")
-                        .font(.system(size: 15))
-                        .foregroundColor(HDColors.forestGreen)
-                    Spacer()
-                    Text(appVersion)
-                        .font(.system(size: 15))
-                        .foregroundColor(HDColors.mutedGreen)
-                }
-
-                Divider()
-                    .background(HDColors.dividerColor)
-
-                HStack {
-                    Text("Build")
-                        .font(.system(size: 15))
-                        .foregroundColor(HDColors.forestGreen)
-                    Spacer()
-                    Text(buildNumber)
-                        .font(.system(size: 15))
-                        .foregroundColor(HDColors.mutedGreen)
-                }
-            }
-        }
-    }
-
-    // MARK: - Made By Section
-
-    private var madeBySection: some View {
-        FormSection(title: "Gemaakt door", icon: "person") {
-            VStack(alignment: .leading, spacing: HDSpacing.xs) {
-                Text("Mapp Maarten")
-                    .font(.system(size: 15, weight: .medium))
+            HStack {
+                Text("Versie")
+                    .font(.system(size: 15))
                     .foregroundColor(HDColors.forestGreen)
-
-                Text("Indie app developer uit Nederland")
-                    .font(.system(size: 14))
+                Spacer()
+                Text(appVersion)
+                    .font(.system(size: 15))
                     .foregroundColor(HDColors.mutedGreen)
             }
         }
@@ -117,10 +84,17 @@ struct AboutView: View {
 
     private var personalNoteSection: some View {
         FormSection(title: "Persoonlijke noot", icon: "heart") {
-            Text("Er zijn genoeg dagboek-apps, maar ik miste iets dat echt voor wandelaars gemaakt is. Daarom heb ik het Wandeldagboek ontwikkeld. In deze app kun je al je wandelingen eenvoudig vastleggen, teruglezen en bijhouden. Het is gebaseerd op mijn eigen ervaring als fanatieke wandelaar. Wandelen geeft energie! Met dit dagboek bewaar je die momenten.")
-                .font(.system(size: 14))
-                .foregroundColor(HDColors.forestGreen)
-                .lineSpacing(4)
+            VStack(alignment: .leading, spacing: HDSpacing.md) {
+                Text("Er zijn genoeg dagboek-apps, maar ik miste iets dat echt voor wandelaars gemaakt is. Daarom heb ik het Wandeldagboek ontwikkeld. In deze app kun je al je wandelingen eenvoudig vastleggen, teruglezen en bijhouden. Het is gebaseerd op mijn eigen ervaring als fanatieke wandelaar.")
+                    .font(.system(size: 14))
+                    .foregroundColor(HDColors.forestGreen)
+                    .lineSpacing(4)
+
+                Text("Wandelen geeft energie! Met dit dagboek bewaar je die momenten.")
+                    .font(.system(size: 14))
+                    .foregroundColor(HDColors.forestGreen)
+                    .lineSpacing(4)
+            }
         }
     }
 
@@ -129,19 +103,42 @@ struct AboutView: View {
     private var brandingSection: some View {
         VStack(spacing: HDSpacing.md) {
             Image(systemName: "figure.hiking")
-                .font(.system(size: 50))
+                .font(.system(size: 32, weight: .light))
                 .foregroundColor(HDColors.forestGreen)
 
             Text("Wandeldagboek")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(HDColors.forestGreen)
 
-            Text("Jouw wandelingen, vastgelegd")
-                .font(.system(size: 14))
+            Text("Verhalen, geen stappen")
+                .font(.system(size: 12))
                 .foregroundColor(HDColors.mutedGreen)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, HDSpacing.xl)
+        .padding(.vertical, HDSpacing.lg)
+    }
+
+    // MARK: - Rate App Section
+
+    private var rateAppSection: some View {
+        FormSection(title: nil, icon: nil) {
+            Button {
+                requestReview()
+            } label: {
+                VStack(spacing: 4) {
+                    Text("Ben je blij met de app?")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(HDColors.forestGreen)
+                    Text("Help andere wandelaars de app te vinden en laat een beoordeling achter.")
+                        .font(.system(size: 13))
+                        .foregroundColor(HDColors.mutedGreen)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, HDSpacing.xs)
+            }
+            .buttonStyle(.plain)
+        }
     }
 }
 

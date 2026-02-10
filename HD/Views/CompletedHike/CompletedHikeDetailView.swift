@@ -7,6 +7,8 @@ struct CompletedHikeDetailView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var showDeleteConfirmation = false
+    @State private var audioRecorder = AudioRecorderService()
+    @State private var selectedPhotoIndex: Int?
 
     var photos: [PhotoMedia] {
         hike.photos ?? []
@@ -23,27 +25,13 @@ struct CompletedHikeDetailView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: HDSpacing.lg) {
-                    // Hero header met naam en rating
                     heroHeader
 
-                    // Header met stats
                     statsSection
 
-                    // Basis informatie
                     basicInfoSection
 
-                    // De Reis (start → eind met stemmingen)
                     journeySection
-
-                    // Foto's
-                    if !photos.isEmpty {
-                        photosSection
-                    }
-
-                    // Audio
-                    if !audioRecordings.isEmpty {
-                        audioSection
-                    }
 
                     // Verhaal en notities
                     if !hike.story.isEmpty || !hike.notes.isEmpty {
@@ -53,12 +41,21 @@ struct CompletedHikeDetailView: View {
                     // Observaties
                     observationsSection
 
+                    // Audio
+                    if !audioRecordings.isEmpty {
+                        audioSection
+                    }
+
+                    // Foto's
+                    if !photos.isEmpty {
+                        photosSection
+                    }
+
                     // Reflectie
                     if !hike.reflection.isEmpty {
                         reflectionSection
                     }
 
-                    // Delete button
                     deleteButton
                 }
                 .padding(.horizontal, HDSpacing.horizontalMargin)
@@ -77,45 +74,70 @@ struct CompletedHikeDetailView: View {
                 }
             }
         }
-        .confirmationDialog(
-            "Wandeling verwijderen?",
-            isPresented: $showDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Verwijderen", role: .destructive) {
-                deleteHike()
+        .sheet(isPresented: $showDeleteConfirmation) {
+            VStack(spacing: HDSpacing.lg) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 32))
+                    .foregroundColor(HDColors.recordingRed)
+                    .frame(width: 64, height: 64)
+                    .background(HDColors.recordingRed.opacity(0.1))
+                    .clipShape(Circle())
+
+                VStack(spacing: HDSpacing.xs) {
+                    Text("Wandeling verwijderen?")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(HDColors.forestGreen)
+
+                    Text("Deze actie kan niet ongedaan worden gemaakt. Alle gegevens, foto's en audio worden definitief verwijderd.")
+                        .font(.subheadline)
+                        .foregroundColor(HDColors.mutedGreen)
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: HDSpacing.sm) {
+                    Button {
+                        showDeleteConfirmation = false
+                        deleteHike()
+                    } label: {
+                        Text("Verwijderen")
+                            .font(.body)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(HDSpacing.buttonPadding)
+                            .background(HDColors.recordingRed)
+                            .cornerRadius(HDSpacing.cornerRadiusMedium)
+                    }
+
+                    Button {
+                        showDeleteConfirmation = false
+                    } label: {
+                        Text("Annuleren")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(HDColors.mutedGreen)
+                            .frame(maxWidth: .infinity)
+                            .padding(HDSpacing.buttonPadding)
+                            .background(HDColors.sageGreen.opacity(0.2))
+                            .cornerRadius(HDSpacing.cornerRadiusMedium)
+                    }
+                }
             }
-            Button("Annuleren", role: .cancel) {}
-        } message: {
-            Text("Deze actie kan niet ongedaan worden gemaakt.")
+            .padding(.horizontal, HDSpacing.horizontalMargin)
+            .padding(.top, HDSpacing.xl)
+            .padding(.bottom, HDSpacing.lg)
+            .presentationDetents([.height(340)])
+            .presentationDragIndicator(.visible)
         }
     }
 
     private var heroHeader: some View {
         VStack(alignment: .leading, spacing: HDSpacing.xs) {
-            HStack {
-                Text(hike.name)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(HDColors.forestGreen)
-
-                Spacer()
-
-                // Rating badge met amber accent
-                if let rating = hike.rating {
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(HDColors.amber)
-                        Text("\(rating)")
-                            .fontWeight(.semibold)
-                    }
-                    .font(.subheadline)
-                    .padding(.horizontal, HDSpacing.sm)
-                    .padding(.vertical, HDSpacing.xs)
-                    .background(HDColors.amberLight.opacity(0.5))
-                    .cornerRadius(HDSpacing.cornerRadiusSmall)
-                }
-            }
+            Text(hike.name)
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(HDColors.forestGreen)
 
             // Datum subtitel
             Text(formattedDate(hike.startTime))
@@ -218,10 +240,26 @@ struct CompletedHikeDetailView: View {
                 columns: [GridItem(.flexible()), GridItem(.flexible())],
                 spacing: HDSpacing.sm
             ) {
-                ForEach(photos) { photo in
+                ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
                     CompletedPhotoGridItem(photo: photo)
+                        .onTapGesture {
+                            selectedPhotoIndex = index
+                        }
                 }
             }
+        }
+        .fullScreenCover(item: Binding<PhotoIndex?>(
+            get: {
+                if let index = selectedPhotoIndex {
+                    return PhotoIndex(index: index)
+                }
+                return nil
+            },
+            set: { newValue in
+                selectedPhotoIndex = newValue?.index
+            }
+        )) { item in
+            FullScreenPhotoView(photos: photos, initialIndex: item.index)
         }
     }
 
@@ -234,7 +272,7 @@ struct CompletedHikeDetailView: View {
 
             VStack(spacing: HDSpacing.sm) {
                 ForEach(audioRecordings) { recording in
-                    CompletedAudioRow(recording: recording)
+                    CompletedAudioRow(recording: recording, audioRecorder: audioRecorder)
                 }
             }
         }
@@ -308,7 +346,7 @@ struct CompletedHikeDetailView: View {
 
                     Divider()
 
-                    HStack(spacing: HDSpacing.lg) {
+                    HStack(spacing: HDSpacing.sm) {
                         CountBadge(
                             icon: "pawprint",
                             label: "Dieren",
@@ -397,7 +435,7 @@ struct CompletedHikeDetailView: View {
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
-        formatter.timeStyle = .short
+        formatter.timeStyle = .none
         formatter.locale = Locale(identifier: "nl_NL")
         return formatter.string(from: date)
     }
@@ -459,8 +497,11 @@ struct CompletedPhotoGridItem: View {
 
 struct CompletedAudioRow: View {
     let recording: AudioMedia
-    @State private var audioRecorder = AudioRecorderService()
-    @State private var isPlaying = false
+    let audioRecorder: AudioRecorderService
+
+    private var isPlaying: Bool {
+        audioRecorder.playingURL == recording.temporaryFileURL
+    }
 
     var body: some View {
         CardView {
@@ -502,18 +543,8 @@ struct CompletedAudioRow: View {
 
         if isPlaying {
             audioRecorder.stopPlaying()
-            isPlaying = false
         } else {
-            if audioRecorder.isPlaying {
-                audioRecorder.stopPlaying()
-            }
-
             audioRecorder.play(url: url)
-            isPlaying = true
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + recording.duration) {
-                isPlaying = false
-            }
         }
     }
 
@@ -598,11 +629,130 @@ struct CountBadge: View {
             Text(label)
                 .font(.caption2)
                 .foregroundColor(HDColors.mutedGreen)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        .padding(.horizontal, HDSpacing.sm)
+        .frame(maxWidth: .infinity)
         .padding(.vertical, HDSpacing.xs)
         .background(HDColors.sageGreen.opacity(0.2))
         .cornerRadius(HDSpacing.cornerRadiusSmall)
+    }
+}
+
+// MARK: - Photo Index (Identifiable wrapper for fullScreenCover)
+
+private struct PhotoIndex: Identifiable {
+    let index: Int
+    var id: Int { index }
+}
+
+// MARK: - Full Screen Photo View
+
+struct FullScreenPhotoView: View {
+    let photos: [PhotoMedia]
+    let initialIndex: Int
+    @Environment(\.dismiss) private var dismiss
+    @State private var currentIndex: Int
+    @State private var magnification: CGFloat = 1.0
+
+    init(photos: [PhotoMedia], initialIndex: Int) {
+        self.photos = photos
+        self.initialIndex = initialIndex
+        self._currentIndex = State(initialValue: initialIndex)
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            TabView(selection: $currentIndex) {
+                ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
+                    ZoomablePhotoPage(photo: photo)
+                        .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: photos.count > 1 ? .automatic : .never))
+
+            // Close button
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body.weight(.semibold))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.white.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                    .padding(.trailing, HDSpacing.md)
+                    .padding(.top, HDSpacing.sm)
+                }
+                Spacer()
+            }
+        }
+        .statusBarHidden(true)
+    }
+}
+
+// MARK: - Zoomable Photo Page
+
+private struct ZoomablePhotoPage: View {
+    let photo: PhotoMedia
+    @State private var loadedImage: UIImage?
+    @State private var scale: CGFloat = 1.0
+    @State private var lastScale: CGFloat = 1.0
+
+    var body: some View {
+        GeometryReader { geo in
+            if let image = loadedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .scaleEffect(scale)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { value in
+                                scale = lastScale * value
+                            }
+                            .onEnded { value in
+                                lastScale = scale
+                                if scale < 1.0 {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        scale = 1.0
+                                        lastScale = 1.0
+                                    }
+                                } else if scale > 4.0 {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        scale = 4.0
+                                        lastScale = 4.0
+                                    }
+                                }
+                            }
+                    )
+                    .onTapGesture(count: 2) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            if scale > 1.0 {
+                                scale = 1.0
+                                lastScale = 1.0
+                            } else {
+                                scale = 2.0
+                                lastScale = 2.0
+                            }
+                        }
+                    }
+            } else {
+                ProgressView()
+                    .tint(.white)
+                    .frame(width: geo.size.width, height: geo.size.height)
+            }
+        }
+        .onAppear {
+            loadedImage = photo.image
+        }
     }
 }
 

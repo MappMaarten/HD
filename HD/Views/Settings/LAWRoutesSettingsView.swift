@@ -9,6 +9,7 @@ struct LAWRoutesSettingsView: View {
     // State for inline adding
     @State private var newRouteName = ""
     @State private var newStagesCount = 10
+    @State private var isAddingNewRoute = false
 
     // State for expanded routes
     @State private var expandedRouteIDs: Set<PersistentIdentifier> = []
@@ -84,23 +85,20 @@ struct LAWRoutesSettingsView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: HDSpacing.lg) {
-            Spacer()
+        ScrollView {
+            VStack(spacing: HDSpacing.lg) {
+                addRouteSection
 
-            EmptyStateView(
-                icon: "signpost.right",
-                title: "Geen LAW Routes",
-                message: "Voeg je favoriete langeafstandswandelingen toe om je voortgang bij te houden.",
-                actionTitle: nil,
-                action: nil
-            )
-
-            Spacer()
-
-            // Add route section at bottom
-            addRouteSection
-                .padding(.horizontal, HDSpacing.horizontalMargin)
-                .padding(.bottom, HDSpacing.lg)
+                EmptyStateView(
+                    icon: "signpost.right",
+                    title: "Geen LAW Routes",
+                    message: "Voeg je favoriete langeafstandswandelingen toe om je voortgang bij te houden.",
+                    actionTitle: nil,
+                    action: nil
+                )
+            }
+            .padding(.horizontal, HDSpacing.horizontalMargin)
+            .padding(.bottom, HDSpacing.lg)
         }
     }
 
@@ -109,13 +107,13 @@ struct LAWRoutesSettingsView: View {
     private var routesContent: some View {
         ScrollView {
             VStack(spacing: HDSpacing.md) {
+                // Add new route section at top
+                addRouteSection
+
                 // Existing routes
                 ForEach(lawRoutes) { route in
                     routeCard(for: route)
                 }
-
-                // Add new route section
-                addRouteSection
             }
             .padding(.horizontal, HDSpacing.horizontalMargin)
             .padding(.bottom, HDSpacing.lg)
@@ -203,23 +201,17 @@ struct LAWRoutesSettingsView: View {
                         }
                     }
 
-                    // Delete button
-                    Button {
-                        withAnimation {
-                            deleteRoute(route)
-                        }
-                    } label: {
-                        HStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            withAnimation { deleteRoute(route) }
+                        } label: {
                             Image(systemName: "trash")
                                 .font(.system(size: 14))
-                            Text("Verwijder route")
-                                .font(.system(size: 14))
+                                .foregroundColor(HDColors.mutedGreen)
                         }
-                        .foregroundColor(.red.opacity(0.8))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, HDSpacing.xs)
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
@@ -228,63 +220,95 @@ struct LAWRoutesSettingsView: View {
     // MARK: - Add Route Section
 
     private var addRouteSection: some View {
-        FormSection(title: "Nieuwe route", icon: "plus") {
-            VStack(spacing: HDSpacing.md) {
-                HDTextField(
-                    "Bijv. Pieterpad",
-                    text: $newRouteName,
-                    icon: "signpost.right"
-                )
-
-                HStack {
-                    Text("Aantal etappes")
-                        .font(.system(size: 14))
-                        .foregroundColor(HDColors.forestGreen)
-
-                    Spacer()
-
-                    HStack(spacing: HDSpacing.md) {
-                        Button {
-                            if newStagesCount > 1 {
-                                newStagesCount -= 1
-                            }
-                        } label: {
-                            Image(systemName: "minus.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(newStagesCount > 1 ? HDColors.forestGreen : HDColors.mutedGreen.opacity(0.5))
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(newStagesCount <= 1)
-
-                        Text("\(newStagesCount)")
+        FormSection {
+            VStack(alignment: .leading, spacing: HDSpacing.sm) {
+                // Header (tap to toggle)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isAddingNewRoute.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "plus")
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(HDColors.forestGreen)
-                            .frame(width: 32)
+                            .frame(width: 20)
 
-                        Button {
-                            newStagesCount += 1
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(HDColors.forestGreen)
-                        }
-                        .buttonStyle(.plain)
+                        Text("Nieuwe route")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(HDColors.forestGreen)
+
+                        Spacer()
+
+                        Image(systemName: isAddingNewRoute ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(HDColors.mutedGreen)
                     }
-                }
-
-                Button {
-                    addRoute()
-                } label: {
-                    Text("Toevoegen")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, HDSpacing.sm)
-                        .background(newRouteName.isEmpty ? HDColors.mutedGreen.opacity(0.5) : HDColors.forestGreen)
-                        .cornerRadius(HDSpacing.cornerRadiusSmall)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .disabled(newRouteName.isEmpty)
+
+                // Expanded content
+                if isAddingNewRoute {
+                    Divider()
+                        .background(HDColors.dividerColor)
+
+                    HDTextField(
+                        "Bijv. Pieterpad",
+                        text: $newRouteName,
+                        icon: "signpost.right"
+                    )
+
+                    HStack {
+                        Text("Aantal etappes")
+                            .font(.system(size: 14))
+                            .foregroundColor(HDColors.forestGreen)
+
+                        Spacer()
+
+                        HStack(spacing: HDSpacing.md) {
+                            Button {
+                                if newStagesCount > 1 {
+                                    newStagesCount -= 1
+                                }
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(newStagesCount > 1 ? HDColors.forestGreen : HDColors.mutedGreen.opacity(0.5))
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(newStagesCount <= 1)
+
+                            Text("\(newStagesCount)")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(HDColors.forestGreen)
+                                .frame(width: 32)
+
+                            Button {
+                                newStagesCount += 1
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(HDColors.forestGreen)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    Button {
+                        addRoute()
+                    } label: {
+                        Text("Toevoegen")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, HDSpacing.sm)
+                            .background(newRouteName.isEmpty ? HDColors.mutedGreen.opacity(0.5) : HDColors.forestGreen)
+                            .cornerRadius(HDSpacing.cornerRadiusSmall)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(newRouteName.isEmpty)
+                }
             }
         }
     }
@@ -303,6 +327,7 @@ struct LAWRoutesSettingsView: View {
         // Reset form
         newRouteName = ""
         newStagesCount = 10
+        isAddingNewRoute = false
     }
 
     private func deleteRoute(_ route: LAWRoute) {

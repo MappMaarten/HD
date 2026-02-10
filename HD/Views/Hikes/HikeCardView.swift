@@ -100,16 +100,16 @@ struct HikeCardView: View {
                         Text("Etappe \(stageNumber)")
                             .font(.custom(HDTypography.handwrittenFont, size: 14))
                     }
-                    .foregroundColor(HDColors.forestGreen)
+                    .foregroundColor(HDColors.hikeTypePath)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(HDColors.sageGreen.opacity(0.15))
+                            .fill(HDColors.hikeTypePath.opacity(0.12))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(HDColors.mutedGreen.opacity(0.25), lineWidth: 1)
+                            .stroke(HDColors.hikeTypePath.opacity(0.25), lineWidth: 1)
                     )
                 }
 

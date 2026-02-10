@@ -3,6 +3,7 @@ import SwiftUI
 struct NotificationsSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(AppState.self) private var appState
 
     @AppStorage("notificationsEnabled") private var enableNotifications = false
     @AppStorage("activeHikeReminderEnabled") private var activeHikeReminderEnabled = false
@@ -30,10 +31,33 @@ struct NotificationsSettingsView: View {
         }
         .onChange(of: enableNotifications) { _, newValue in
             if newValue {
-                Task {
-                    await requestPermissionIfNeeded()
-                }
+                Task { await requestPermissionIfNeeded() }
+                rescheduleHikeRemindersIfNeeded()
+                rescheduleMotivationReminderIfNeeded()
+            } else {
+                NotificationService.shared.cancelHikeReminders()
+                NotificationService.shared.cancelMotivationReminders()
             }
+        }
+        .onChange(of: activeHikeReminderEnabled) { _, newValue in
+            if newValue {
+                rescheduleHikeRemindersIfNeeded()
+            } else {
+                NotificationService.shared.cancelHikeReminders()
+            }
+        }
+        .onChange(of: activeHikeReminderInterval) { _, _ in
+            rescheduleHikeRemindersIfNeeded()
+        }
+        .onChange(of: motivationReminderEnabled) { _, newValue in
+            if newValue {
+                rescheduleMotivationReminderIfNeeded()
+            } else {
+                NotificationService.shared.cancelMotivationReminders()
+            }
+        }
+        .onChange(of: motivationReminderDays) { _, _ in
+            rescheduleMotivationReminderIfNeeded()
         }
     }
 
@@ -140,34 +164,28 @@ struct NotificationsSettingsView: View {
 
     private var mainToggleSection: some View {
         FormSection {
-            HStack(spacing: HDSpacing.md) {
-                // Bell icon
-                Image(systemName: enableNotifications ? "bell.fill" : "bell.slash")
-                    .font(.system(size: 24))
-                    .foregroundColor(enableNotifications ? HDColors.forestGreen : HDColors.mutedGreen)
-                    .frame(width: 32)
+            VStack(alignment: .leading, spacing: HDSpacing.xs) {
+                HStack(spacing: HDSpacing.sm) {
+                    Image(systemName: enableNotifications ? "bell.fill" : "bell.slash")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(enableNotifications ? HDColors.forestGreen : HDColors.mutedGreen)
+                        .frame(width: 28)
 
-                // Text
-                VStack(alignment: .leading, spacing: 2) {
                     Text(enableNotifications ? "Notificaties aan" : "Notificaties uit")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(HDColors.forestGreen)
-                    Text("Ontvang herinneringen tijdens en na je wandelingen")
-                        .font(.system(size: 13))
-                        .foregroundColor(HDColors.mutedGreen)
+
+                    Spacer()
+
+                    Toggle("", isOn: $enableNotifications)
+                        .labelsHidden()
+                        .toggleStyle(HDToggleStyle())
                 }
 
-                Spacer()
-
-                // Custom toggle with better contrast
-                Toggle("", isOn: $enableNotifications)
-                    .labelsHidden()
-                    .tint(HDColors.forestGreen)
-                    .background(
-                        Capsule()
-                            .fill(enableNotifications ? Color.clear : HDColors.dividerColor)
-                            .frame(width: 51, height: 31)
-                    )
+                Text("Ontvang herinneringen tijdens en na je wandelingen")
+                    .font(.system(size: 13))
+                    .foregroundColor(HDColors.mutedGreen)
+                    .padding(.leading, 40)
             }
         }
     }
@@ -187,7 +205,7 @@ struct NotificationsSettingsView: View {
                             .foregroundColor(HDColors.mutedGreen)
                     }
                 }
-                .tint(HDColors.forestGreen)
+                .toggleStyle(HDToggleStyle())
 
                 if activeHikeReminderEnabled {
                     VStack(alignment: .leading, spacing: HDSpacing.sm) {
@@ -244,7 +262,7 @@ struct NotificationsSettingsView: View {
                             .foregroundColor(HDColors.mutedGreen)
                     }
                 }
-                .tint(HDColors.forestGreen)
+                .toggleStyle(HDToggleStyle())
 
                 if motivationReminderEnabled {
                     VStack(alignment: .leading, spacing: HDSpacing.sm) {
@@ -303,6 +321,24 @@ struct NotificationsSettingsView: View {
             }
             .animation(.easeInOut(duration: 0.2), value: motivationReminderEnabled)
         }
+    }
+
+    // MARK: - Rescheduling
+
+    private func rescheduleHikeRemindersIfNeeded() {
+        guard enableNotifications, activeHikeReminderEnabled else { return }
+        guard appState.activeHikeID != nil else { return }
+        let interval = activeHikeReminderInterval == 0 ? 30 : activeHikeReminderInterval
+        NotificationService.shared.scheduleHikeReminders(intervalMinutes: interval)
+    }
+
+    private func rescheduleMotivationReminderIfNeeded() {
+        guard enableNotifications, motivationReminderEnabled else { return }
+        guard appState.activeHikeID == nil else { return }
+        let days = motivationReminderDays == 0 ? 3 : motivationReminderDays
+        let lastHikeTimestamp = UserDefaults.standard.double(forKey: "lastCompletedHikeDate")
+        let lastHikeDate = lastHikeTimestamp > 0 ? Date(timeIntervalSince1970: lastHikeTimestamp) : nil
+        NotificationService.shared.scheduleMotivationReminders(lastCompletedHikeDate: lastHikeDate, daysInterval: days)
     }
 
     // MARK: - Actions

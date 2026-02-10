@@ -27,7 +27,6 @@ struct YourDataView: View {
                     .padding(.horizontal, HDSpacing.horizontalMargin)
                 }
 
-                privacyButtonSection
             }
         }
         .navigationBarHidden(true)
@@ -73,6 +72,22 @@ struct YourDataView: View {
                 .font(.system(size: 14))
                 .foregroundColor(HDColors.forestGreen)
                 .lineSpacing(4)
+
+            Divider()
+
+            Button {
+                openURL(privacyPolicyURL)
+            } label: {
+                HStack {
+                    Text("Bekijk privacybeleid")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(HDColors.forestGreen)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(HDColors.mutedGreen)
+                }
+            }
         }
     }
 
@@ -137,19 +152,6 @@ struct YourDataView: View {
         }
     }
 
-    // MARK: - Privacy Button Section
-
-    private var privacyButtonSection: some View {
-        PrimaryButton(
-            title: "Bekijk privacybeleid",
-            action: {
-                openURL(privacyPolicyURL)
-            },
-            icon: "arrow.up.right"
-        )
-        .padding(.horizontal, HDSpacing.horizontalMargin)
-        .padding(.vertical, HDSpacing.lg)
-    }
 }
 
 #Preview {

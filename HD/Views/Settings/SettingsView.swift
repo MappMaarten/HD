@@ -111,19 +111,6 @@ struct SettingsView: View {
                 // Informatie sectie
                 FormSection(title: "Informatie", icon: "info.circle") {
                     VStack(spacing: 0) {
-                        NavigationLink(destination: AboutView()) {
-                            SettingsRow(
-                                icon: "info.circle",
-                                title: "Over de app",
-                                subtitle: "Versie en persoonlijke noot"
-                            )
-                        }
-                        .buttonStyle(.plain)
-
-                        Divider()
-                            .background(HDColors.dividerColor)
-                            .padding(.vertical, HDSpacing.xs)
-
                         NavigationLink(destination: NewsView()) {
                             SettingsRow(
                                 icon: "newspaper",
@@ -155,6 +142,19 @@ struct SettingsView: View {
                                 icon: "hand.raised",
                                 title: "Jouw gegevens",
                                 subtitle: "Privacy en iCloud status"
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider()
+                            .background(HDColors.dividerColor)
+                            .padding(.vertical, HDSpacing.xs)
+
+                        NavigationLink(destination: AboutView()) {
+                            SettingsRow(
+                                icon: "info.circle",
+                                title: "Over de app",
+                                subtitle: "Versie en persoonlijke noot"
                             )
                         }
                         .buttonStyle(.plain)
@@ -215,6 +215,7 @@ struct SettingsRow: View {
             }
         }
         .padding(.vertical, HDSpacing.xs)
+        .contentShape(Rectangle())
     }
 }
 

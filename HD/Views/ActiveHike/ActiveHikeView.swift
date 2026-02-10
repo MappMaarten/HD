@@ -3,6 +3,8 @@ import SwiftUI
 struct ActiveHikeView: View {
     @State private var viewModel: ActiveHikeViewModel
     @State private var selectedTab = 0
+    @State private var showCompletionOverlay = false
+    @Environment(\.dismiss) private var dismiss
 
     init(hike: Hike) {
         _viewModel = State(initialValue: ActiveHikeViewModel(hike: hike))
@@ -29,8 +31,9 @@ struct ActiveHikeView: View {
             ("photo", "Foto's")
         ]
 
-        // Only show Finish tab for in-progress hikes
-        if !isCompleted {
+        if isCompleted {
+            tabList.append(("slider.horizontal.3", "Gegevens"))
+        } else {
             tabList.append(("checkmark.circle", "Afronden"))
         }
 
@@ -46,7 +49,14 @@ struct ActiveHikeView: View {
                 case 1: ObservationsTabView(viewModel: viewModel)
                 case 2: AudioTabView(viewModel: viewModel)
                 case 3: PhotosTabView(viewModel: viewModel)
-                case 4: FinishTabView(viewModel: viewModel)
+                case 4:
+                    if isCompleted {
+                        HikeDataEditTabView(viewModel: viewModel)
+                    } else {
+                        FinishTabView(viewModel: viewModel, onComplete: {
+                            showCompletionOverlay = true
+                        })
+                    }
                 default: StoryTabView(viewModel: viewModel)
                 }
             }
@@ -57,6 +67,11 @@ struct ActiveHikeView: View {
         }
         .ignoresSafeArea(.keyboard)
         .background(HDColors.cream)
+        .fullScreenCover(isPresented: $showCompletionOverlay) {
+            HikeCompletionOverlay {
+                dismiss()
+            }
+        }
         .navigationTitle(viewModel.hike.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(HDColors.cream, for: .navigationBar)

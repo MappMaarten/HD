@@ -13,9 +13,11 @@ struct NewsView: View {
             VStack(spacing: 0) {
                 backButton
                 titleSection
-                descriptionSection
-                Spacer()
-                buttonSection
+
+                ScrollView {
+                    descriptionSection
+                        .padding(.horizontal, HDSpacing.horizontalMargin)
+                }
             }
         }
         .navigationBarHidden(true)
@@ -61,22 +63,23 @@ struct NewsView: View {
                 .font(.system(size: 14))
                 .foregroundColor(HDColors.forestGreen)
                 .lineSpacing(4)
-        }
-        .padding(.horizontal, HDSpacing.horizontalMargin)
-    }
 
-    // MARK: - Button Section
+            Divider()
 
-    private var buttonSection: some View {
-        PrimaryButton(
-            title: "Bekijk nieuws",
-            action: {
+            Button {
                 openURL(newsURL)
-            },
-            icon: "arrow.up.right"
-        )
-        .padding(.horizontal, HDSpacing.horizontalMargin)
-        .padding(.bottom, HDSpacing.lg)
+            } label: {
+                HStack {
+                    Text("Bekijk nieuws")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(HDColors.forestGreen)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(HDColors.mutedGreen)
+                }
+            }
+        }
     }
 }
 

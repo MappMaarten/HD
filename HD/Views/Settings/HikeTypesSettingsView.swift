@@ -4,10 +4,6 @@ import SwiftData
 struct HikeTypesSettingsView: View {
     @Query(sort: \HikeType.sortOrder) private var allHikeTypes: [HikeType]
 
-    /// Filter out system types (LAW-route) - these are managed elsewhere
-    private var hikeTypes: [HikeType] {
-        allHikeTypes.filter { $0.name != "LAW" }
-    }
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
@@ -15,6 +11,7 @@ struct HikeTypesSettingsView: View {
     @State private var newTypeName = ""
     @State private var newTypeIcon = "figure.walk"
     @State private var isAddingNewType = false
+    @State private var newTypeIconPickerVisible = false
 
     // State for expanded types
     @State private var expandedTypeIDs: Set<PersistentIdentifier> = []
@@ -24,7 +21,8 @@ struct HikeTypesSettingsView: View {
         "building.2", "tree", "mountain.2", "beach.umbrella",
         "signpost.right", "map", "location", "flag",
         "leaf", "cloud.sun", "tent", "binoculars",
-        "dog", "camera"
+        "dog", "camera",
+        "arrow.triangle.turn.up.right.circle", "shoe.2"
     ]
 
     var body: some View {
@@ -36,7 +34,7 @@ struct HikeTypesSettingsView: View {
                 titleSection
                 explanationSection
 
-                if hikeTypes.isEmpty {
+                if allHikeTypes.filter({ !$0.name.lowercased().contains("law") }).isEmpty {
                     emptyState
                 } else {
                     typesContent
@@ -99,6 +97,9 @@ struct HikeTypesSettingsView: View {
 
     private var emptyState: some View {
         VStack(spacing: HDSpacing.lg) {
+            addTypeSection
+                .padding(.horizontal, HDSpacing.horizontalMargin)
+
             Spacer()
 
             EmptyStateView(
@@ -110,11 +111,6 @@ struct HikeTypesSettingsView: View {
             )
 
             Spacer()
-
-            // Add type section at bottom
-            addTypeSection
-                .padding(.horizontal, HDSpacing.horizontalMargin)
-                .padding(.bottom, HDSpacing.lg)
         }
     }
 
@@ -123,13 +119,13 @@ struct HikeTypesSettingsView: View {
     private var typesContent: some View {
         ScrollView {
             VStack(spacing: HDSpacing.md) {
+                // Add new type section at top
+                addTypeSection
+
                 // Existing types
-                ForEach(hikeTypes) { type in
+                ForEach(allHikeTypes.filter { !$0.name.lowercased().contains("law") }) { type in
                     typeCard(for: type)
                 }
-
-                // Add new type section
-                addTypeSection
             }
             .padding(.horizontal, HDSpacing.horizontalMargin)
             .padding(.bottom, HDSpacing.lg)
@@ -189,23 +185,17 @@ struct HikeTypesSettingsView: View {
                         }
                     }
 
-                    // Delete button
-                    Button {
-                        withAnimation {
-                            deleteType(type)
-                        }
-                    } label: {
-                        HStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            withAnimation { deleteType(type) }
+                        } label: {
                             Image(systemName: "trash")
                                 .font(.system(size: 14))
-                            Text("Verwijder type")
-                                .font(.system(size: 14))
+                                .foregroundColor(HDColors.mutedGreen)
                         }
-                        .foregroundColor(.red.opacity(0.8))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, HDSpacing.xs)
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
@@ -216,7 +206,7 @@ struct HikeTypesSettingsView: View {
     private var addTypeSection: some View {
         FormSection {
             VStack(alignment: .leading, spacing: HDSpacing.sm) {
-                // Header row - clickable
+                // Header (tap to toggle)
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         isAddingNewType.toggle()
@@ -247,14 +237,47 @@ struct HikeTypesSettingsView: View {
                     Divider()
                         .background(HDColors.dividerColor)
 
-                    VStack(spacing: HDSpacing.md) {
+                    // Name field and icon button row
+                    HStack(spacing: HDSpacing.sm) {
                         HDTextField(
                             "Bijv. Dagwandeling",
                             text: $newTypeName,
                             icon: "figure.walk"
                         )
 
-                        // Icon picker
+                        // Icon picker toggle button
+                        Button {
+                            newTypeIconPickerVisible.toggle()
+                        } label: {
+                            Image(systemName: newTypeIcon)
+                                .font(.system(size: 16))
+                                .foregroundColor(HDColors.forestGreen)
+                                .frame(width: 40, height: 40)
+                                .background(
+                                    RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusSmall)
+                                        .fill(HDColors.cream)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusSmall)
+                                        .stroke(HDColors.dividerColor, lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+
+                        // Add button
+                        Button {
+                            addType()
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 28))
+                                .foregroundColor(newTypeName.isEmpty ? HDColors.mutedGreen.opacity(0.5) : HDColors.forestGreen)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(newTypeName.isEmpty)
+                    }
+
+                    // Icon picker grid
+                    if newTypeIconPickerVisible {
                         VStack(alignment: .leading, spacing: HDSpacing.sm) {
                             Text("Icoon")
                                 .font(.system(size: 14, weight: .medium))
@@ -264,20 +287,6 @@ struct HikeTypesSettingsView: View {
                                 newTypeIcon = icon
                             }
                         }
-
-                        Button {
-                            addType()
-                        } label: {
-                            Text("Toevoegen")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, HDSpacing.sm)
-                                .background(newTypeName.isEmpty ? HDColors.mutedGreen.opacity(0.5) : HDColors.forestGreen)
-                                .cornerRadius(HDSpacing.cornerRadiusSmall)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(newTypeName.isEmpty)
                     }
                 }
             }
@@ -327,6 +336,8 @@ struct HikeTypesSettingsView: View {
         // Reset form
         newTypeName = ""
         newTypeIcon = "figure.walk"
+        newTypeIconPickerVisible = false
+        isAddingNewType = false
     }
 
     private func deleteType(_ type: HikeType) {

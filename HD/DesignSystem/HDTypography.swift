@@ -52,6 +52,14 @@ struct HDBodyStyle: ViewModifier {
     }
 }
 
+struct HDBodySerifStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.custom("Georgia", size: HDTypography.bodySize))
+            .foregroundColor(HDColors.forestGreen)
+    }
+}
+
 struct HDHandwrittenStyle: ViewModifier {
     var size: CGFloat = HDTypography.handwrittenSize
 
@@ -75,6 +83,10 @@ extension View {
 
     func hdBody() -> some View {
         modifier(HDBodyStyle())
+    }
+
+    func hdBodySerif() -> some View {
+        modifier(HDBodySerifStyle())
     }
 
     func hdHandwritten(size: CGFloat = HDTypography.handwrittenSize) -> some View {

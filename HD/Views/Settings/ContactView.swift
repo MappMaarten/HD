@@ -22,14 +22,9 @@ struct ContactView: View {
                 titleSection
 
                 ScrollView {
-                    VStack(spacing: HDSpacing.md) {
-                        descriptionSection
-                        reasonsSection
-                    }
-                    .padding(.horizontal, HDSpacing.horizontalMargin)
+                    contentSection
+                        .padding(.horizontal, HDSpacing.horizontalMargin)
                 }
-
-                buttonSection
             }
         }
         .navigationBarHidden(true)
@@ -67,21 +62,17 @@ struct ContactView: View {
         .padding(.bottom, HDSpacing.sm)
     }
 
-    // MARK: - Description Section
+    // MARK: - Content Section
 
-    private var descriptionSection: some View {
-        FormSection {
+    private var contentSection: some View {
+        FormSection(title: "Neem contact op", icon: "envelope") {
             Text("Heb je vragen, suggesties of wil je samenwerken? Ik hoor graag van je!")
                 .font(.system(size: 14))
                 .foregroundColor(HDColors.forestGreen)
                 .lineSpacing(4)
-        }
-    }
 
-    // MARK: - Reasons Section
+            Divider()
 
-    private var reasonsSection: some View {
-        FormSection(title: "Neem contact op voor", icon: "envelope") {
             VStack(alignment: .leading, spacing: HDSpacing.md) {
                 ForEach(contactReasons, id: \.text) { reason in
                     HStack(spacing: HDSpacing.sm) {
@@ -96,21 +87,23 @@ struct ContactView: View {
                     }
                 }
             }
-        }
-    }
 
-    // MARK: - Button Section
+            Divider()
 
-    private var buttonSection: some View {
-        PrimaryButton(
-            title: "Feedback versturen",
-            action: {
+            Button {
                 openURL(feedbackURL)
-            },
-            icon: "paperplane"
-        )
-        .padding(.horizontal, HDSpacing.horizontalMargin)
-        .padding(.vertical, HDSpacing.lg)
+            } label: {
+                HStack {
+                    Text("Feedback versturen")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(HDColors.forestGreen)
+                    Spacer()
+                    Image(systemName: "paperplane")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(HDColors.mutedGreen)
+                }
+            }
+        }
     }
 }
 

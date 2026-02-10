@@ -12,61 +12,46 @@ import SwiftUI
 struct OnboardingPage {
     let icon: String
     let title: String
-    let subtitle: String
-    let description: String
+    let text: String
 }
 
 // MARK: - Onboarding Pages Data
 
 private let onboardingPages: [OnboardingPage] = [
-    // Page 1: Welkom
     OnboardingPage(
         icon: "figure.hiking",
         title: "Welkom in jouw Wandeldagboek",
-        subtitle: "Verhalen, geen stappen",
-        description: "Dit is geen sportapp, maar een persoonlijk dagboek dat je vult terwijl je loopt.\nHet gaat om beleving, niet om prestaties."
+        text: "Verhalen, geen stappen.\n\nDit is geen sportapp, maar een persoonlijk dagboek dat je vult terwijl je loopt. Het gaat om beleving, niet om prestaties."
     ),
-    // Page 2: Waarnemen
     OnboardingPage(
         icon: "eye",
         title: "Leg vast wat je ziet",
-        subtitle: "Kleine momenten, grote indruk",
-        description: "Een vogel die je verrast.\nEen lichtval die je raakt.\nLeg indrukken vast met foto's, korte notities of symbolen."
+        text: "Kleine momenten, grote indruk.\n\nEen vogel die je verrast. Een lichtval die je raakt. Leg indrukken vast met foto's, korte notities of symbolen."
     ),
-    // Page 3: Gevoel
     OnboardingPage(
         icon: "heart.fill",
         title: "Sta stil bij hoe je je voelt",
-        subtitle: "Van spanning naar rust",
-        description: "Check in bij jezelf voor en na je wandeling.\nEnergie, spanning, stemming - hoe voel je je?"
+        text: "Van spanning naar rust.\n\nCheck in bij jezelf voor en na je wandeling. Energie, spanning, stemming — hoe voel je je?"
     ),
-    // Page 4: Reflectie
     OnboardingPage(
         icon: "book.fill",
         title: "Verbind je gedachten",
-        subtitle: "Bewaar wat je beleeft",
-        description: "Wat zie je? Wie spreek je? Waar stop je?\nLeg je wandeldag vast zoals een logboek.\nLees later terug wat je beleefde."
+        text: "Bewaar wat je beleeft.\n\nWat zie je? Wie spreek je? Waar stop je? Leg je wandeldag vast zoals een logboek. Lees later terug wat je beleefde."
     ),
-    // Page 5: Terugkijken
     OnboardingPage(
         icon: "map.fill",
         title: "Zie waar je geweest bent",
-        subtitle: "Jouw persoonlijke wandelkaart",
-        description: "Elke wandeling verschijnt als een marker op de kaart.\nOntdek je eigen wandelgeschiedenis."
+        text: "Jouw persoonlijke wandelkaart.\n\nElke wandeling verschijnt als een marker op de kaart. Ontdek je eigen wandelgeschiedenis."
     ),
-    // Page 6: Ritme
     OnboardingPage(
         icon: "bell.fill",
         title: "Blijf verbonden met je ritueel",
-        subtitle: "Zachte herinneringen, geen druk",
-        description: "Vriendelijke herinneringen tijdens je wandeling en motivatie om regelmatig te wandelen."
+        text: "Zachte herinneringen, geen druk.\n\nVriendelijke herinneringen tijdens je wandeling en motivatie om regelmatig te wandelen."
     ),
-    // Page 7: Afsluiting
     OnboardingPage(
         icon: "figure.hiking",
         title: "Jouw tempo, jouw verhaal",
-        subtitle: "Geen doelen, alleen aanwezigheid",
-        description: "Dit is je persoonlijke ruimte.\nWandel wanneer je wilt.\nSchrijf wat je wilt.\nVoor jou."
+        text: "Geen doelen, alleen aanwezigheid.\n\nDit is je persoonlijke ruimte. Wandel wanneer je wilt. Schrijf wat je wilt. Voor jou."
     )
 ]
 
@@ -97,18 +82,19 @@ struct OnboardingContainerView: View {
                                 currentPage = totalPages - 1
                             }
                         }
-                        .font(.custom("Georgia", size: 16))
+                        .font(.custom("Georgia-Italic", size: 15))
                         .foregroundColor(HDColors.mutedGreen)
+                        .opacity(0.5)
                     }
                 }
-                .padding(.horizontal, HDSpacing.horizontalMargin)
-                .padding(.top, HDSpacing.md)
+                .padding(.horizontal, 32)
+                .padding(.top, HDSpacing.lg)
                 .frame(height: 44)
 
                 // Content TabView (swipe only)
                 TabView(selection: $currentPage) {
                     ForEach(0..<totalPages, id: \.self) { index in
-                        OnboardingPageView(page: onboardingPages[index])
+                        OnboardingPageView(page: onboardingPages[index], pageIndex: index)
                             .tag(index)
                     }
                 }
@@ -143,7 +129,7 @@ struct OnboardingContainerView: View {
                     notificationsEnabled = true
                 }
                 appState.isOnboarded = true
-                // Setting isOnboarded triggers HDApp to re-render with HikesOverviewView
+                dismiss()
             }
         }
     }
@@ -153,55 +139,142 @@ struct OnboardingContainerView: View {
 
 struct OnboardingPageView: View {
     let page: OnboardingPage
-    @State private var isVisible = false
+    let pageIndex: Int
+
+    @State private var showIcon = false
+    @State private var showDivider = false
+    @State private var showTitle = false
+    @State private var showText = false
+
+    private var config: OnboardingPageConfig {
+        OnboardingPageConfig.config(for: pageIndex)
+    }
 
     var body: some View {
-        VStack(spacing: HDSpacing.lg) {
-            Spacer()
+        ZStack {
+            // Subtle background leaf decorations
+            ForEach(config.leafDecorations) { leaf in
+                BackgroundLeafDecoration(
+                    size: leaf.size,
+                    rotation: leaf.rotation,
+                    opacity: leaf.opacity,
+                    xOffset: leaf.xOffset,
+                    yOffset: leaf.yOffset
+                )
+            }
 
-            // Animated circular icon (no decorations)
-            CircularIconView(
-                icon: page.icon,
-                size: 160,
-                animateRings: true
-            )
-            .id(page.icon) // Force re-render on page change
+            // Clean centered content - no CardView wrapper
+            VStack(spacing: 0) {
+                Spacer()
 
-            // Title - handwritten style
-            Text(page.title)
-                .hdHandwritten(size: 26)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, HDSpacing.horizontalMargin)
-                .opacity(isVisible ? 1 : 0)
-                .offset(y: isVisible ? 0 : 15)
+                // Icon at 100pt - elegant accent, not hero
+                CircularIconView(
+                    icon: page.icon,
+                    size: config.iconSize,
+                    animateRings: true
+                )
+                .modifier(SpecialIconAnimation(type: config.specialAnimation))
+                .opacity(showIcon ? 1 : 0)
 
-            // Subtitle - Georgia Italic
-            Text(page.subtitle)
-                .hdSubtitle()
-                .multilineTextAlignment(.center)
-                .opacity(isVisible ? 1 : 0)
-                .offset(y: isVisible ? 0 : 15)
+                Spacer().frame(height: 32)
 
-            // Leaf divider
-            LeafDivider()
-                .opacity(isVisible ? 1 : 0)
+                // LeafDivider - elegant separator
+                LeafDivider()
+                    .opacity(showDivider ? 1 : 0)
 
-            // Description
-            Text(page.description)
-                .hdBody()
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, HDSpacing.xl)
-                .opacity(isVisible ? 1 : 0)
-                .offset(y: isVisible ? 0 : 15)
+                Spacer().frame(height: 28)
 
-            Spacer()
-            Spacer()
+                // Title - clean, centered, no notebook background
+                Text(page.title)
+                    .hdHandwritten(size: 28)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                    .opacity(showTitle ? 1 : 0)
+
+                Spacer().frame(height: 24)
+
+                // Split text: bold subtitle + italic description
+                textSection
+                    .opacity(showText ? 1 : 0)
+                    .offset(y: showText ? 0 : 8)
+
+                Spacer()
+                Spacer()
+            }
         }
         .onAppear {
-            isVisible = false
-            withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
-                isVisible = true
-            }
+            animateEntrance()
+        }
+    }
+
+    private var textSection: some View {
+        let components = page.text.components(separatedBy: "\n\n")
+        let subtitle = components.first ?? ""
+        let description = components.count > 1 ? components[1] : ""
+
+        return VStack(alignment: .center, spacing: 12) {
+            Text(subtitle)
+                .font(.custom("Georgia-Bold", size: 17))
+                .foregroundColor(HDColors.forestGreen)
+                .multilineTextAlignment(.center)
+
+            Text(description)
+                .hdSubtitle(size: 16)
+                .lineSpacing(5)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 40)
+    }
+
+    private func animateEntrance() {
+        showIcon = false
+        showDivider = false
+        showTitle = false
+        showText = false
+
+        withAnimation(.easeOut(duration: 0.4).delay(0.1)) {
+            showIcon = true
+        }
+
+        withAnimation(.easeOut(duration: 0.3).delay(0.35)) {
+            showDivider = true
+        }
+
+        withAnimation(.easeOut(duration: 0.4).delay(0.45)) {
+            showTitle = true
+        }
+
+        withAnimation(.easeOut(duration: 0.4).delay(0.55)) {
+            showText = true
+        }
+    }
+}
+
+// MARK: - Special Icon Animation Modifier
+
+struct SpecialIconAnimation: ViewModifier {
+    let type: SpecialAnimation?
+    @State private var animating = false
+
+    func body(content: Content) -> some View {
+        switch type {
+        case .pulse:
+            content
+                .scaleEffect(animating ? 1.05 : 1.0)
+                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: animating)
+                .onAppear { animating = true }
+        case .breathing:
+            content
+                .scaleEffect(animating ? 1.03 : 1.0)
+                .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: animating)
+                .onAppear { animating = true }
+        case .sway:
+            content
+                .rotationEffect(.degrees(animating ? 3 : -3))
+                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: animating)
+                .onAppear { animating = true }
+        case .none:
+            content
         }
     }
 }

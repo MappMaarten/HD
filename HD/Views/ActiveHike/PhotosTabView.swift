@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import AVFoundation
 
 struct PhotosTabView: View {
     @Bindable var viewModel: ActiveHikeViewModel
@@ -11,6 +12,7 @@ struct PhotosTabView: View {
     @State private var showCameraPicker = false
     @State private var showPhotoPicker = false
     @State private var photoToDelete: PhotoMedia?
+    @State private var showCameraPermissionAlert = false
 
     private let maxPhotos = 5
 
@@ -54,6 +56,7 @@ struct PhotosTabView: View {
                     }
                 }
             }
+            .ignoresSafeArea()
         }
         .photosPicker(
             isPresented: $showPhotoPicker,
@@ -78,7 +81,7 @@ struct PhotosTabView: View {
         }
         .confirmationDialog("Foto toevoegen", isPresented: $showImageSourcePicker) {
             Button("Camera") {
-                showCameraPicker = true
+                checkCameraPermissionAndOpen()
             }
 
             Button("Kies uit bibliotheek") {
@@ -86,6 +89,16 @@ struct PhotosTabView: View {
             }
 
             Button("Annuleer", role: .cancel) {}
+        }
+        .alert("Cameratoegang vereist", isPresented: $showCameraPermissionAlert) {
+            Button("Ga naar Instellingen") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Annuleer", role: .cancel) {}
+        } message: {
+            Text("Geef HD toegang tot je camera in Instellingen om foto's te maken tijdens je wandeling.")
         }
     }
 
@@ -242,6 +255,27 @@ struct PhotosTabView: View {
     }
 
     // MARK: - Actions
+
+    private func checkCameraPermissionAndOpen() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            showCameraPicker = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        showCameraPicker = true
+                    } else {
+                        showCameraPermissionAlert = true
+                    }
+                }
+            }
+        case .denied, .restricted:
+            showCameraPermissionAlert = true
+        @unknown default:
+            showCameraPermissionAlert = true
+        }
+    }
 
     @MainActor
     private func addPhotos(from items: [PhotosPickerItem]) async {

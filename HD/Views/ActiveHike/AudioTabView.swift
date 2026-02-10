@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import SwiftData
 
@@ -10,6 +11,7 @@ struct AudioTabView: View {
     @State private var recordingName = ""
     @State private var pendingRecording: (url: URL, duration: TimeInterval)?
     @State private var pulseScale: CGFloat = 1.0
+    @State private var showMicPermissionAlert = false
 
     var audioRecordings: [AudioMedia] {
         viewModel.hike.audioRecordings ?? []
@@ -66,6 +68,16 @@ struct AudioTabView: View {
             )
             .presentationDetents([.height(300)])
             .presentationDragIndicator(.visible)
+        }
+        .alert("Microfoontoegang vereist", isPresented: $showMicPermissionAlert) {
+            Button("Ga naar Instellingen") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Annuleer", role: .cancel) {}
+        } message: {
+            Text("Geef HD toegang tot je microfoon in Instellingen om audio op te nemen tijdens je wandeling.")
         }
     }
 
@@ -232,8 +244,28 @@ struct AudioTabView: View {
     }
 
     private func startRecording() {
-        pulseScale = 1.0
-        _ = audioRecorder.startRecording()
+        let permission = AVAudioSession.sharedInstance().recordPermission
+
+        switch permission {
+        case .granted:
+            pulseScale = 1.0
+            _ = audioRecorder.startRecording()
+        case .undetermined:
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        pulseScale = 1.0
+                        _ = audioRecorder.startRecording()
+                    } else {
+                        showMicPermissionAlert = true
+                    }
+                }
+            }
+        case .denied:
+            showMicPermissionAlert = true
+        @unknown default:
+            showMicPermissionAlert = true
+        }
     }
 
     private func stopRecording() {

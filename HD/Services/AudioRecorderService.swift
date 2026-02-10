@@ -9,6 +9,7 @@ final class AudioRecorderService: NSObject {
 
     private(set) var isRecording = false
     private(set) var isPlaying = false
+    private(set) var playingURL: URL?
     private(set) var recordingDuration: TimeInterval = 0
     private(set) var audioLevel: Float = 0.0
 
@@ -20,27 +21,42 @@ final class AudioRecorderService: NSObject {
     private var playbackTimer: Timer?
     private var currentRecordingURL: URL?
 
-    override init() {
-        super.init()
-        setupAudioSession()
-    }
+    // MARK: - Audio Session
 
-    // MARK: - Setup
-
-    private func setupAudioSession() {
+    private func activateRecordingSession() {
         let session = AVAudioSession.sharedInstance()
-
         do {
             try session.setCategory(.playAndRecord, mode: .default)
             try session.setActive(true)
         } catch {
-            print("Failed to setup audio session: \(error)")
+            print("Failed to activate recording session: \(error)")
+        }
+    }
+
+    private func activatePlaybackSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .default)
+            try session.setActive(true)
+        } catch {
+            print("Failed to activate playback session: \(error)")
+        }
+    }
+
+    private func deactivateAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error)")
         }
     }
 
     // MARK: - Recording
 
     func startRecording() -> Bool {
+        activateRecordingSession()
+
         // Create temporary file URL
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
@@ -92,6 +108,7 @@ final class AudioRecorderService: NSObject {
 
         isRecording = false
         audioLevel = 0.0
+        deactivateAudioSession()
 
         guard let url = currentRecordingURL else {
             return nil
@@ -117,17 +134,33 @@ final class AudioRecorderService: NSObject {
         audioLevel = 0.0
         currentRecordingURL = nil
         recordingDuration = 0
+        deactivateAudioSession()
     }
 
     // MARK: - Playback
 
     func play(url: URL) {
+        // Stop huidige playback zonder audio session te deactiveren,
+        // zodat andere apps (Muziek) niet hervatten
+        if isPlaying {
+            audioPlayer?.stop()
+            playbackTimer?.invalidate()
+            playbackTimer = nil
+            isPlaying = false
+            playingURL = nil
+            playbackCurrentTime = 0
+            playbackDuration = 0
+        }
+
+        activatePlaybackSession()
+
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.delegate = self
             audioPlayer?.play()
 
             isPlaying = true
+            playingURL = url
             playbackDuration = audioPlayer?.duration ?? 0
             playbackCurrentTime = 0
 
@@ -147,8 +180,10 @@ final class AudioRecorderService: NSObject {
         playbackTimer = nil
 
         isPlaying = false
+        playingURL = nil
         playbackCurrentTime = 0
         playbackDuration = 0
+        deactivateAudioSession()
     }
 
     func seekTo(time: TimeInterval) {
@@ -180,7 +215,9 @@ extension AudioRecorderService: AVAudioPlayerDelegate {
         playbackTimer = nil
 
         isPlaying = false
+        playingURL = nil
         playbackCurrentTime = 0
         playbackDuration = 0
+        deactivateAudioSession()
     }
 }

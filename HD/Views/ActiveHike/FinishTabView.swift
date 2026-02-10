@@ -2,8 +2,8 @@ import SwiftUI
 
 struct FinishTabView: View {
     @Bindable var viewModel: ActiveHikeViewModel
-    @Environment(\.dismiss) private var dismiss
     @Environment(AppState.self) private var appState
+    var onComplete: () -> Void
 
     @State private var distance: String = ""
     @State private var rating: Double = 5.0
@@ -11,7 +11,6 @@ struct FinishTabView: View {
     @State private var reflection: String = ""
     @State private var endTime = Date()
     @State private var endLocationName: String = ""
-    @State private var showCompletionOverlay = false
 
     let locationService = LocationService()
 
@@ -86,11 +85,6 @@ struct FinishTabView: View {
                     }
                     .foregroundColor(HDColors.forestGreen)
                 }
-            }
-        }
-        .fullScreenCover(isPresented: $showCompletionOverlay) {
-            HikeCompletionOverlay {
-                dismiss()
             }
         }
         .onAppear {
@@ -280,7 +274,8 @@ struct FinishTabView: View {
             viewModel.hike.endLongitude = longitude
         }
 
-        viewModel.hike.distance = Double(distance)
+        let normalizedDistance = distance.replacingOccurrences(of: ",", with: ".")
+        viewModel.hike.distance = Double(normalizedDistance)
         viewModel.hike.rating = Int(rating)
         viewModel.hike.endMood = Int(endMood)
         viewModel.hike.reflection = reflection
@@ -301,7 +296,7 @@ struct FinishTabView: View {
         // Store last completed hike date
         UserDefaults.standard.set(endTime.timeIntervalSince1970, forKey: "lastCompletedHikeDate")
 
-        showCompletionOverlay = true
+        onComplete()
     }
 
     private func hideKeyboard() {
@@ -321,7 +316,8 @@ struct FinishTabView: View {
                 type: "Dagwandeling",
                 startMood: 6
             )
-        )
+        ),
+        onComplete: {}
     )
     .environment(AppState())
 }
