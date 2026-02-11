@@ -244,14 +244,14 @@ struct AudioTabView: View {
     }
 
     private func startRecording() {
-        let permission = AVAudioSession.sharedInstance().recordPermission
+        let permission = AVAudioApplication.shared.recordPermission
 
         switch permission {
         case .granted:
             pulseScale = 1.0
             _ = audioRecorder.startRecording()
         case .undetermined:
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            AVAudioApplication.requestRecordPermission { granted in
                 DispatchQueue.main.async {
                     if granted {
                         pulseScale = 1.0

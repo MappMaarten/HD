@@ -22,54 +22,52 @@ struct FinishTabView: View {
                 HDColors.cream
                     .ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: HDSpacing.md) {
-                            // Header
-                            journalHeader
+                ScrollView {
+                    VStack(alignment: .leading, spacing: HDSpacing.md) {
+                        // Header
+                        journalHeader
 
-                            // 1. Eindtijd
-                            FormSection(title: "Eindtijd", icon: "clock") {
-                                endTimeContent
-                            }
+                        // 1. Eindtijd
+                        FormSection(title: "Eindtijd", icon: "clock") {
+                            endTimeContent
+                        }
 
-                            // 2. Eindlocatie
-                            FormSection(title: "Eindlocatie", icon: "mappin.and.ellipse") {
-                                locationContent
-                            }
+                        // 2. Eindlocatie
+                        FormSection(title: "Eindlocatie", icon: "mappin.and.ellipse") {
+                            locationContent
+                        }
 
-                            // 3. Afstand
-                            FormSection(title: "Afstand", icon: "point.topleft.down.to.point.bottomright.curvepath") {
-                                distanceContent
-                            }
+                        // 3. Afstand
+                        FormSection(title: "Afstand", icon: "point.topleft.down.to.point.bottomright.curvepath") {
+                            distanceContent
+                        }
 
-                            // 4. Wandelwaardering
-                            FormSection(title: "Hoe heb je de wandeling ervaren?", icon: "star") {
-                                HikeRatingSlider(value: $rating)
-                            }
+                        // 4. Wandelwaardering
+                        FormSection(title: "Hoe heb je de wandeling ervaren?", icon: "star") {
+                            HikeRatingSlider(value: $rating)
+                        }
 
-                            // 5. Eindstemming met vergelijking
-                            FormSection(title: "Hoe voel je je nu?", icon: "heart") {
-                                VStack(spacing: HDSpacing.md) {
-                                    NatureMoodSlider(value: $endMood)
-                                    moodComparisonView
-                                }
-                            }
-
-                            // 6. Reflectie
-                            FormSection(title: "Reflectie", icon: "text.quote") {
-                                reflectionContent
+                        // 5. Eindstemming met vergelijking
+                        FormSection(title: "Hoe voel je je nu?", icon: "heart") {
+                            VStack(spacing: HDSpacing.md) {
+                                NatureMoodSlider(value: $endMood)
+                                moodComparisonView
                             }
                         }
-                        .padding(.horizontal, HDSpacing.horizontalMargin)
-                        .padding(.top, HDSpacing.md)
-                        .padding(.bottom, 120)
-                    }
-                    .scrollDismissesKeyboard(.interactively)
 
-                    // Sticky bottom button
-                    stickyButton
+                        // 6. Reflectie
+                        FormSection(title: "Reflectie", icon: "text.quote") {
+                            reflectionContent
+                        }
+
+                        // Afronden button
+                        finishButton
+                    }
+                    .padding(.horizontal, HDSpacing.horizontalMargin)
+                    .padding(.top, HDSpacing.md)
+                    .padding(.bottom, HDSpacing.md)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(HDColors.cream, for: .navigationBar)
@@ -232,22 +230,15 @@ struct FinishTabView: View {
         )
     }
 
-    // MARK: - Sticky Button
+    // MARK: - Finish Button
 
-    private var stickyButton: some View {
-        VStack {
-            PrimaryButton(
-                title: "Wandeling Afronden",
-                action: { finishHike() },
-                icon: "checkmark.circle"
-            )
-            .padding(.horizontal, HDSpacing.horizontalMargin)
-            .padding(.vertical, HDSpacing.md)
-        }
-        .background(
-            HDColors.cream
-                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -6)
+    private var finishButton: some View {
+        PrimaryButton(
+            title: "Wandeling Afronden",
+            action: { finishHike() },
+            icon: "checkmark.circle"
         )
+        .padding(.top, HDSpacing.sm)
     }
 
     // MARK: - Actions

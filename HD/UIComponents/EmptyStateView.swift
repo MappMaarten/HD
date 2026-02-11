@@ -15,35 +15,59 @@ struct EmptyStateView: View {
     var action: (() -> Void)? = nil
     var useCircularIcon: Bool = true
 
+    @State private var showIcon = false
+    @State private var showText = false
+
     var body: some View {
         VStack(spacing: HDSpacing.lg) {
             if useCircularIcon {
                 CircularIconView(
                     icon: icon,
-                    size: 120
+                    size: 140,
+                    animateRings: true
                 )
+                .modifier(SpecialIconAnimation(type: .breathing))
+                .opacity(showIcon ? 1 : 0)
             } else {
                 Image(systemName: icon)
                     .font(.system(size: 60))
                     .foregroundColor(HDColors.forestGreen)
+                    .opacity(showIcon ? 1 : 0)
             }
 
             VStack(spacing: HDSpacing.xs) {
                 Text(title)
-                    .hdTitle(size: HDTypography.cardTitleSize)
+                    .font(.custom("Georgia-Bold", size: 22))
+                    .foregroundColor(HDColors.forestGreen)
                     .multilineTextAlignment(.center)
 
                 Text(message)
-                    .hdBody()
+                    .font(.custom("Georgia-Italic", size: 16))
+                    .foregroundColor(HDColors.mutedGreen)
+                    .lineSpacing(5)
                     .multilineTextAlignment(.center)
             }
+            .opacity(showText ? 1 : 0)
 
             if let actionTitle = actionTitle, let action = action {
                 PrimaryButton(title: actionTitle, action: action)
                     .padding(.top, HDSpacing.xs)
+                    .opacity(showText ? 1 : 0)
             }
         }
         .padding(HDSpacing.xl)
+        .onAppear {
+            animateEntrance()
+        }
+    }
+
+    private func animateEntrance() {
+        withAnimation(.easeOut(duration: 0.4).delay(0.1)) {
+            showIcon = true
+        }
+        withAnimation(.easeOut(duration: 0.4).delay(0.35)) {
+            showText = true
+        }
     }
 }
 

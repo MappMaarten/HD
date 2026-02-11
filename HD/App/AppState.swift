@@ -29,19 +29,8 @@ final class AppState {
     }
 
     func shouldShowSplash() -> Bool {
-        // Only apply time-based splash AFTER onboarding
-        guard isOnboarded else { return false }
-
-        guard let lastOpened = lastAppOpenedTimestamp else {
-            // First time opening after onboarding completion
-            return true
-        }
-
-        // 24 hours = 86400 seconds
-        let splashThresholdSeconds: TimeInterval = 24 * 60 * 60
-        let timeSinceLastOpen = Date().timeIntervalSince(lastOpened)
-
-        return timeSinceLastOpen >= splashThresholdSeconds
+        // Show splash every time the app opens, but only after onboarding
+        return isOnboarded
     }
 
     func updateLastAppOpened() {

@@ -40,6 +40,9 @@ enum HDColors {
     static let hikeTypeNeighborhood = Color(hex: "8A8975")   // Blokje om - warm gray
     static let hikeTypeGeneral = Color(hex: "7A8B6C")        // Dagwandeling - natural green
 
+    // MARK: - Filter Elements
+    static let filterElementBackground = Color(hex: "D5CEC3")
+
     // MARK: - Semantic Aliases
     static let background = cream
     static let primary = forestGreen

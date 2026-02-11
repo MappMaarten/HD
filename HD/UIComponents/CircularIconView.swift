@@ -11,6 +11,8 @@ struct CircularIconView: View {
     let icon: String
     var size: CGFloat = 200
     var animateRings: Bool = false
+    var ringColor: Color = HDColors.sageGreen
+    var iconColor: Color = HDColors.forestGreen
 
     // Animation states for ring fade-in
     @State private var ring1Opacity: Double = 0
@@ -30,8 +32,8 @@ struct CircularIconView: View {
                 .fill(
                     RadialGradient(
                         gradient: Gradient(colors: [
-                            HDColors.sageGreen.opacity(0.3),
-                            HDColors.sageGreen.opacity(0.1)
+                            ringColor.opacity(0.3),
+                            ringColor.opacity(0.1)
                         ]),
                         center: .center,
                         startRadius: 0,
@@ -40,15 +42,15 @@ struct CircularIconView: View {
                 )
                 .frame(width: outerCircleSize, height: outerCircleSize)
                 .opacity(ring1Opacity)
-                .shadow(color: HDColors.sageGreen.opacity(0.3), radius: 10)
+                .shadow(color: ringColor.opacity(0.3), radius: 10)
 
             // Middle circle (fades in second)
             Circle()
                 .fill(
                     RadialGradient(
                         gradient: Gradient(colors: [
-                            HDColors.sageGreen.opacity(0.5),
-                            HDColors.sageGreen.opacity(0.3)
+                            ringColor.opacity(0.35),
+                            ringColor.opacity(0.18)
                         ]),
                         center: .center,
                         startRadius: 0,
@@ -60,14 +62,14 @@ struct CircularIconView: View {
 
             // Inner circle (fades in last)
             Circle()
-                .fill(HDColors.sageGreen)
+                .fill(ringColor)
                 .frame(width: innerCircleSize, height: innerCircleSize)
                 .opacity(ring3Opacity)
 
             // Central icon
             Image(systemName: icon)
                 .font(.system(size: iconSize, weight: .medium))
-                .foregroundColor(HDColors.forestGreen)
+                .foregroundColor(iconColor)
                 .opacity(ring3Opacity)
         }
         .frame(width: size, height: size)

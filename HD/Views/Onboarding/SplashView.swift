@@ -8,65 +8,60 @@
 import SwiftUI
 
 struct SplashView: View {
-    @Environment(AppState.self) private var appState
-    @State private var opacity: Double = 0
-    let isPostOnboarding: Bool
+    @State private var showIcon = false
+    @State private var showTitle = false
+    var onComplete: () -> Void
 
     var body: some View {
         ZStack {
             HDColors.cream
                 .ignoresSafeArea()
 
-            VStack(spacing: HDSpacing.lg) {
-                CircularIconView(
+            VStack(spacing: 0) {
+                Spacer()
+
+                OnboardingCircularView(
                     icon: "figure.hiking",
-                    size: 180,
-                    animateRings: true
+                    size: 220,
+                    decorativeIcons: [
+                        DecorativeIconConfig(icon: "book.fill", angle: 45),
+                        DecorativeIconConfig(icon: "arrow.triangle.turn.up.right.diamond", angle: 225)
+                    ],
+                    accentColor: HDColors.forestGreen
                 )
+                .modifier(SpecialIconAnimation(type: .pulse))
+                .opacity(showIcon ? 1 : 0)
 
-                LeafDivider()
-                    .padding(.vertical, HDSpacing.sm)
+                Spacer().frame(height: 28)
 
-                VStack(spacing: HDSpacing.xs) {
-                    Text("Wandeldagboek")
-                        .hdTitle(size: HDTypography.splashTitleSize)
+                Text("Wandeldagboek")
+                    .font(.custom("Georgia-Bold", size: 26))
+                    .foregroundColor(HDColors.forestGreen)
+                    .opacity(showTitle ? 1 : 0)
 
-                    Text("Jouw persoonlijke wandeldagboek")
-                        .hdSubtitle()
-                }
+                Spacer()
+                Spacer()
             }
-            .opacity(opacity)
         }
         .onAppear {
-            withAnimation(.easeIn(duration: 0.6)) {
-                opacity = 1
-            }
+            animateEntrance()
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                if isPostOnboarding {
-                    // After onboarding: navigate to overview
-                    appState.navigationPath.append("overview")
-                } else {
-                    // During onboarding: navigate to onboarding
-                    appState.navigationPath.append("onboarding")
-                }
+                onComplete()
             }
         }
-        .navigationDestination(for: String.self) { destination in
-            switch destination {
-            case "onboarding":
-                OnboardingContainerView()
-            case "overview":
-                HikesOverviewView()
-            default:
-                // Fallback: redirect to onboarding if destination invalid
-                OnboardingContainerView()
-            }
+    }
+
+    private func animateEntrance() {
+        withAnimation(.easeOut(duration: 0.4).delay(0.1)) {
+            showIcon = true
+        }
+        withAnimation(.easeOut(duration: 0.4).delay(0.35)) {
+            showTitle = true
         }
     }
 }
 
 #Preview {
-    SplashView(isPostOnboarding: false)
-        .environment(AppState())
+    SplashView(onComplete: {})
 }

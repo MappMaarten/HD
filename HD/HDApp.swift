@@ -30,6 +30,7 @@ struct HDApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.scenePhase) private var scenePhase
     @State private var appState = AppState()
+    @State private var showingSplash = true
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -40,7 +41,14 @@ struct HDApp: App {
             AudioMedia.self,
             UserData.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .automatic)
+        let cloudKitDatabase: ModelConfiguration.CloudKitDatabase =
+            FileManager.default.ubiquityIdentityToken != nil ? .automatic : .none
+
+        let modelConfiguration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: cloudKitDatabase
+        )
 
         do {
             let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -104,22 +112,23 @@ struct HDApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack(path: $appState.navigationPath) {
-                if appState.isOnboarded {
-                    // User has completed onboarding
-                    if appState.shouldShowSplash() {
-                        // Show splash if >24h since last opened
-                        SplashView(isPostOnboarding: true)
-                    } else {
-                        // Skip splash, go directly to overview
+            Group {
+                if showingSplash && appState.isOnboarded {
+                    SplashView {
+                        withAnimation {
+                            showingSplash = false
+                        }
+                    }
+                } else if appState.isOnboarded {
+                    NavigationStack(path: $appState.navigationPath) {
                         HikesOverviewView()
                     }
+                    .environment(appState)
                 } else {
-                    // User has NOT completed onboarding - start directly with onboarding
                     OnboardingContainerView()
+                        .environment(appState)
                 }
             }
-            .environment(appState)
             .onChange(of: scenePhase) {
                 if scenePhase == .active {
                     appState.updateLastAppOpened()

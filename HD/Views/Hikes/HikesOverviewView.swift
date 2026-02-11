@@ -329,7 +329,7 @@ struct HikesOverviewView: View {
                 }
                 .padding(.horizontal, HDSpacing.sm)
                 .padding(.vertical, HDSpacing.xs)
-                .background(HDColors.sageGreen)
+                .background(HDColors.filterElementBackground)
                 .cornerRadius(HDSpacing.cornerRadiusSmall)
 
                 // Compact sort picker
@@ -356,7 +356,7 @@ struct HikesOverviewView: View {
                     .foregroundColor(HDColors.forestGreen)
                     .padding(.horizontal, HDSpacing.sm)
                     .padding(.vertical, HDSpacing.xs)
-                    .background(HDColors.sageGreen)
+                    .background(HDColors.filterElementBackground)
                     .cornerRadius(HDSpacing.cornerRadiusSmall)
                 }
             }
@@ -392,7 +392,7 @@ struct HikesOverviewView: View {
             }
         }
         .padding(HDSpacing.sm)
-        .background(HDColors.cream)
+        .background(HDColors.cardBackground)
         .cornerRadius(HDSpacing.cornerRadiusMedium)
         .shadow(color: Color.black.opacity(0.08), radius: 8, y: 4)
         .padding(.horizontal, HDSpacing.horizontalMargin)
@@ -415,7 +415,7 @@ struct HikesOverviewView: View {
                 .font(.caption.weight(.medium))
                 .padding(.horizontal, HDSpacing.sm)
                 .padding(.vertical, HDSpacing.xs)
-                .background(isSelected ? HDColors.forestGreen : HDColors.sageGreen)
+                .background(isSelected ? HDColors.forestGreen : HDColors.filterElementBackground)
                 .foregroundColor(isSelected ? .white : HDColors.forestGreen)
                 .cornerRadius(HDSpacing.cornerRadiusSmall)
         }
