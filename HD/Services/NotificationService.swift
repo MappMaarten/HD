@@ -22,21 +22,41 @@ final class NotificationService {
     // MARK: - Hike Reminder Messages
 
     private let hikeReminderMessages = [
-        "Geniet je van je wandeling?",
-        "Heb je iets moois gezien?",
-        "Wat valt je op?",
-        "Neem even de tijd om rond te kijken",
-        "Wil je iets vastleggen in je dagboek?"
+        "Hoe voelt je lijf nu?",
+        "Valt je iets bijzonders op?",
+        "Wat hoor je als je even stilstaat?",
+        "Wil je dit moment bewaren?",
+        "Voel je al verschil sinds je begon?",
+        "Wat zou je willen onthouden van nu?",
+        "Hoe voelen je voeten op de grond?",
+        "Wat trekt je aandacht?",
+        "Merk je dat je ademhaling veranderd is?",
+        "Voel je je ritme al?",
+        "Tijd voor een rustmoment?",
+        "Wat heeft de route je tot nu toe gegeven?",
+        "Merk je dat je hoofd leger wordt?",
+        "Waar denk je aan tijdens het lopen?",
+        "Loop je nog in je eigen tempo?"
     ]
 
     // MARK: - Motivation Messages
 
     private let motivationMessages = [
-        "Zin om weer een mooie wandeling te maken?",
-        "Mis je de buitenlucht al?",
-        "Je hebt al even geen wandeling vastgelegd",
-        "Wanneer ga je weer?",
-        "De natuur wacht op je"
+        "Je lijf mist bewegen",
+        "Buiten wacht iets moois",
+        "Zelfs tien minuten lopen helpt",
+        "Een rondje om het blok is genoeg",
+        "Frisse lucht maakt het hoofd helder",
+        "Je ademhaling vraagt om ruimte",
+        "Kleine stappen tellen ook",
+        "Je laatste wandeling deed je goed",
+        "Eén stap buiten de deur is al winst",
+        "Klaar voor een flinke tocht?",
+        "Kilometers maken brengt je bij jezelf",
+        "Een dagtocht geeft ruimte die je niet kunt plannen",
+        "De beste gedachten komen na uur drie",
+        "Lange routes geven perspectief",
+        "Durven doorgaan als het zwaar wordt – dat leer je wandelend"
     ]
 
     // MARK: - Initialization
@@ -75,11 +95,13 @@ final class NotificationService {
     func scheduleHikeReminders(intervalMinutes: Int) {
         cancelHikeReminders()
 
+        let shuffledMessages = hikeReminderMessages.shuffled()
+
         // Schedule 10 reminders ahead
         for i in 1...10 {
             let content = UNMutableNotificationContent()
             content.title = "Wandeldagboek"
-            content.body = hikeReminderMessages.randomElement() ?? hikeReminderMessages[0]
+            content.body = shuffledMessages[(i - 1) % shuffledMessages.count]
             content.sound = .default
 
             let triggerDate = Date().addingTimeInterval(Double(i * intervalMinutes * 60))

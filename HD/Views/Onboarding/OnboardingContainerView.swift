@@ -38,14 +38,14 @@ private let onboardingPages: [OnboardingPage] = [
         icon: "heart.fill",
         subtitle: "Van spanning naar rust",
         title: "Sta stil bij hoe je je voelt",
-        text: "Check in bij jezelf voor en na je wandeling.\n\nEnergie, spanning, stemming—hoe voel je je?",
+        text: "Check in bij jezelf voor en na je wandeling. Energie, spanning, stemming—hoe voel je je?",
         accentColor: HDColors.amber
     ),
     OnboardingPage(
         icon: "book.fill",
         subtitle: "Bewaar wat je beleeft",
         title: "Verbind je gedachten",
-        text: "Wat zie je? Wie spreek je? Waar stop je?\n\nLeg je wandeldag vast zoals een logboek. Lees later terug wat je beleefde.",
+        text: "Wat zie je? Wie spreek je? Waar stop je? Leg je wandeldag vast zoals een logboek. Lees later terug wat je beleefde.",
         accentColor: HDColors.forestGreen
     ),
     OnboardingPage(
@@ -66,7 +66,7 @@ private let onboardingPages: [OnboardingPage] = [
         icon: "figure.hiking",
         subtitle: "Geen doelen, alleen aanwezigheid",
         title: "Jouw tempo, jouw verhaal",
-        text: "Dit is je persoonlijke ruimte.\n\nWandel wanneer je wilt, schrijf wat je wilt. Voor jou.",
+        text: "Dit is je persoonlijke ruimte. Wandel wanneer je wilt, schrijf wat je wilt. Voor jou.",
         accentColor: HDColors.forestGreen
     )
 ]
@@ -154,6 +154,8 @@ struct OnboardingContainerView: View {
                 // Sync iOS permission with app settings
                 if granted {
                     notificationsEnabled = true
+                    UserDefaults.standard.set(true, forKey: "activeHikeReminderEnabled")
+                    UserDefaults.standard.set(true, forKey: "motivationReminderEnabled")
                 }
                 appState.isOnboarded = true
                 dismiss()
@@ -253,7 +255,7 @@ struct OnboardingPageView: View {
 
             // Title - large bold serif
             Text(page.title)
-                .font(.custom("Georgia-Bold", size: 26))
+                .font(.custom(HDTypography.handwrittenFont, size: 26))
                 .foregroundColor(HDColors.forestGreen)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)

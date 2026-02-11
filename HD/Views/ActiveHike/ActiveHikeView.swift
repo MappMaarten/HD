@@ -46,7 +46,7 @@ struct ActiveHikeView: View {
             Group {
                 switch selectedTab {
                 case 0: StoryTabView(viewModel: viewModel)
-                case 1: ObservationsTabView(viewModel: viewModel)
+                case 1: ObservationsTabView(viewModel: viewModel, hikeName: viewModel.hike.name)
                 case 2: AudioTabView(viewModel: viewModel)
                 case 3: PhotosTabView(viewModel: viewModel)
                 case 4:
@@ -67,10 +67,14 @@ struct ActiveHikeView: View {
         }
         .ignoresSafeArea(.keyboard)
         .background(HDColors.cream)
-        .fullScreenCover(isPresented: $showCompletionOverlay) {
-            HikeCompletionOverlay {
+        .sheet(isPresented: $showCompletionOverlay) {
+            HikeCompletionOverlay(hike: viewModel.hike) {
                 dismiss()
             }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(HDColors.cream)
+            .interactiveDismissDisabled()
         }
         .navigationTitle(viewModel.hike.name)
         .navigationBarTitleDisplayMode(.inline)

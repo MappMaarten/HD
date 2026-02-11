@@ -2,8 +2,9 @@ import SwiftUI
 
 struct ObservationsTabView: View {
     @Bindable var viewModel: ActiveHikeViewModel
+    var hikeName: String
     @FocusState private var isEditorFocused: Bool
-    @StateObject private var keyboardObserver = KeyboardObserver()
+
 
     var body: some View {
         NavigationStack {
@@ -21,6 +22,7 @@ struct ObservationsTabView: View {
                                         .foregroundColor(HDColors.mutedGreen.opacity(0.6))
                                         .padding(.top, 8)
                                         .padding(.leading, 4)
+                                        .allowsHitTesting(false)
                                 }
                                 TextEditor(text: $viewModel.hike.terrainDescription)
                                     .frame(minHeight: 60)
@@ -38,6 +40,7 @@ struct ObservationsTabView: View {
                                         .foregroundColor(HDColors.mutedGreen.opacity(0.6))
                                         .padding(.top, 8)
                                         .padding(.leading, 4)
+                                        .allowsHitTesting(false)
                                 }
                                 TextEditor(text: $viewModel.hike.weatherDescription)
                                     .frame(minHeight: 60)
@@ -48,7 +51,7 @@ struct ObservationsTabView: View {
 
                         SectionHeader(
                             title: "Tellingen",
-                            subtitle: "Bijzondere observaties"
+                            subtitle: "Wat je hebt geteld"
                         )
 
                         VStack(spacing: 12) {
@@ -76,10 +79,28 @@ struct ObservationsTabView: View {
                                 onDecrement: { viewModel.decrementMeetingCount() }
                             )
                         }
+
+                        SectionHeader(title: "Bijzondere observaties")
+
+                        CardView {
+                            ZStack(alignment: .topLeading) {
+                                if viewModel.hike.notes.isEmpty {
+                                    Text("Bijv. bijzondere vogel gezien, onverwachte ontmoeting...")
+                                        .foregroundColor(HDColors.mutedGreen.opacity(0.6))
+                                        .padding(.top, 8)
+                                        .padding(.leading, 4)
+                                        .allowsHitTesting(false)
+                                }
+                                TextEditor(text: $viewModel.hike.notes)
+                                    .frame(minHeight: 60)
+                                    .scrollContentBackground(.hidden)
+                                    .focused($isEditorFocused)
+                            }
+                        }
                     }
                     .padding()
-                    .padding(.bottom, keyboardObserver.currentHeight)
                 }
+                .keyboardAdaptive()
             }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
@@ -95,7 +116,7 @@ struct ObservationsTabView: View {
             }
             .toolbarBackground(HDColors.cream, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .navigationTitle("Observaties")
+            .navigationTitle(hikeName)
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -154,6 +175,7 @@ struct CounterCardView: View {
                 type: "Dagwandeling",
                 startMood: 8
             )
-        )
+        ),
+        hikeName: "Test Wandeling"
     )
 }

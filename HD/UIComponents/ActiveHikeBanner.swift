@@ -16,17 +16,6 @@ struct ActiveHikeBanner: View {
         return formatter.string(from: hike.startTime)
     }
 
-    private var elapsedTime: String {
-        let elapsed = Date().timeIntervalSince(hike.startTime)
-        let hours = Int(elapsed) / 3600
-        let minutes = (Int(elapsed) % 3600) / 60
-        if hours > 0 {
-            return "\(hours)u \(minutes)m"
-        } else {
-            return "\(minutes)m"
-        }
-    }
-
     private func locationText(start: String, end: String?) -> String {
         if let end = end, end != start {
             return "\(start) → \(end)"
@@ -152,7 +141,8 @@ struct ActiveHikeBanner: View {
                             Label(locationText(start: startLocation, end: hike.endLocationName), systemImage: "mappin.circle.fill")
                                 .font(.subheadline)
                                 .foregroundColor(HDColors.mutedGreen)
-                                .lineLimit(1)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.85)
                         }
 
                         if !hike.companions.isEmpty {
@@ -162,28 +152,20 @@ struct ActiveHikeBanner: View {
                                 .lineLimit(1)
                         }
 
-                        // Add two-row stats for active hikes
-                        VStack(alignment: .leading, spacing: 4) {
-                            // Row 1: Elapsed time
-                            HStack(spacing: 6) {
-                                statChip(icon: "clock", text: elapsedTime)
+                        // Media indicators (icon-only chips)
+                        HStack(spacing: 6) {
+                            let photoCount = hike.photos?.count ?? 0
+                            if photoCount > 0 {
+                                statChip(icon: "camera.fill", text: nil)
                             }
 
-                            // Row 2: Media indicators (icon-only chips)
-                            HStack(spacing: 6) {
-                                let photoCount = hike.photos?.count ?? 0
-                                if photoCount > 0 {
-                                    statChip(icon: "camera.fill", text: nil)
-                                }
+                            let audioCount = hike.audioRecordings?.count ?? 0
+                            if audioCount > 0 {
+                                statChip(icon: "waveform", text: nil)
+                            }
 
-                                let audioCount = hike.audioRecordings?.count ?? 0
-                                if audioCount > 0 {
-                                    statChip(icon: "waveform", text: nil)
-                                }
-
-                                if !hike.reflection.isEmpty {
-                                    statChip(icon: "sparkles", text: nil)
-                                }
+                            if !hike.reflection.isEmpty {
+                                statChip(icon: "sparkles", text: nil)
                             }
                         }
                         .padding(.top, 4)

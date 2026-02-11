@@ -373,8 +373,6 @@ struct HikesOverviewView: View {
                     }
                 }
 
-                Spacer()
-
                 // Reset button (always visible, but dimmed when no filters active)
                 let hasFilters = !selectedTypes.isEmpty || sortOption != .dateDescending || !searchText.isEmpty
                 Button {

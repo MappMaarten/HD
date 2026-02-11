@@ -125,7 +125,7 @@ struct AboutView: View {
             Button {
                 requestReview()
             } label: {
-                VStack(spacing: 4) {
+                VStack(spacing: HDSpacing.sm) {
                     Text("Ben je blij met de app?")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(HDColors.forestGreen)
@@ -133,6 +133,22 @@ struct AboutView: View {
                         .font(.system(size: 13))
                         .foregroundColor(HDColors.mutedGreen)
                         .multilineTextAlignment(.center)
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(.orange)
+                        Text("Beoordeel in de App Store")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(HDColors.forestGreen)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(HDColors.mutedGreen)
+                    }
+                    .padding(.horizontal, HDSpacing.md)
+                    .padding(.vertical, HDSpacing.xs)
+                    .background(HDColors.forestGreen.opacity(0.08))
+                    .cornerRadius(8)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, HDSpacing.xs)

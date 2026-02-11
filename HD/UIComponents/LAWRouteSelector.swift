@@ -41,7 +41,7 @@ struct LAWRouteSelector: View {
             .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NoHighlightButtonStyle())
         .sheet(isPresented: $showSheet) {
             LAWRouteSelectorSheet(
                 routes: routes,
@@ -97,16 +97,7 @@ private struct LAWRouteSelectorSheet: View {
     private func routeRow(_ route: LAWRoute) -> some View {
         let isSelected = selectedRoute?.id == route.id
 
-        return Button {
-            withAnimation(.spring(response: 0.3)) {
-                selectedRoute = route
-            }
-            // Slight delay before dismissing for better UX
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                isPresented = false
-            }
-        } label: {
-            HStack(spacing: HDSpacing.sm) {
+        return HStack(spacing: HDSpacing.sm) {
                 // Icon
                 Image(systemName: "map")
                     .foregroundColor(HDColors.forestGreen)
@@ -134,8 +125,20 @@ private struct LAWRouteSelectorSheet: View {
             .font(.body)
             .padding(.vertical, HDSpacing.md)
             .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+            .onTapGesture {
+                withAnimation(.spring(response: 0.3)) {
+                    selectedRoute = route
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    isPresented = false
+                }
+            }
+    }
+}
+
+private struct NoHighlightButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
     }
 }
 

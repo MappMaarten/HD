@@ -100,7 +100,7 @@ struct SettingsView: View {
                         } label: {
                             SettingsRow(
                                 icon: "arrow.counterclockwise",
-                                title: "Onboarding opnieuw bekijken",
+                                title: "Uitleg opnieuw bekijken",
                                 subtitle: "Bekijk de introductie opnieuw"
                             )
                         }

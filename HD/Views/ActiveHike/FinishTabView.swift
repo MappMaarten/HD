@@ -50,7 +50,7 @@ struct FinishTabView: View {
                         // 5. Eindstemming met vergelijking
                         FormSection(title: "Hoe voel je je nu?", icon: "heart") {
                             VStack(spacing: HDSpacing.md) {
-                                NatureMoodSlider(value: $endMood)
+                                NatureMoodSlider(value: $endMood, context: .post)
                                 moodComparisonView
                             }
                         }
@@ -68,6 +68,7 @@ struct FinishTabView: View {
                     .padding(.bottom, HDSpacing.md)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .keyboardAdaptive()
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(HDColors.cream, for: .navigationBar)
@@ -211,6 +212,7 @@ struct FinishTabView: View {
                     .foregroundColor(HDColors.mutedGreen.opacity(0.7))
                     .padding(.horizontal, 4)
                     .padding(.vertical, 8)
+                    .allowsHitTesting(false)
             }
 
             // TextEditor

@@ -20,7 +20,7 @@ struct MapInfoPopupView: View {
                 }
 
             // Popup content
-            VStack(spacing: HDSpacing.sm) {
+            VStack(alignment: .leading, spacing: HDSpacing.sm) {
                 // Compact header with icon and title inline
                 HStack {
                     Image(systemName: "map")
@@ -79,6 +79,8 @@ struct MapInfoPopupView: View {
                         color: HDColors.forestGreen,
                         label: "Voltooid"
                     )
+
+                    Spacer()
                 }
                 .padding(.vertical, HDSpacing.xs)
 

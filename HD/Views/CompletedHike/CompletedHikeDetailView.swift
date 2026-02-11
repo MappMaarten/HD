@@ -33,8 +33,8 @@ struct CompletedHikeDetailView: View {
 
                     journeySection
 
-                    // Verhaal en notities
-                    if !hike.story.isEmpty || !hike.notes.isEmpty {
+                    // Verhaal
+                    if !hike.story.isEmpty {
                         storySection
                     }
 
@@ -129,6 +129,7 @@ struct CompletedHikeDetailView: View {
             .padding(.bottom, HDSpacing.lg)
             .presentationDetents([.height(340)])
             .presentationDragIndicator(.visible)
+            .presentationBackground(HDColors.cream)
         }
     }
 
@@ -285,30 +286,15 @@ struct CompletedHikeDetailView: View {
                 subtitle: "Jouw wandelverhaal"
             )
 
-            if !hike.story.isEmpty {
-                CardView {
-                    VStack(alignment: .leading, spacing: HDSpacing.xs) {
-                        Text("Verhaal")
-                            .font(.headline)
+            CardView {
+                VStack(alignment: .leading, spacing: HDSpacing.xs) {
+                    Text("Verhaal")
+                        .font(.headline)
 
-                        Text(hike.story)
-                            .font(.body)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(hike.story)
+                        .font(.body)
                 }
-            }
-
-            if !hike.notes.isEmpty {
-                CardView {
-                    VStack(alignment: .leading, spacing: HDSpacing.xs) {
-                        Text("Notities")
-                            .font(.headline)
-
-                        Text(hike.notes)
-                            .font(.body)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
@@ -364,6 +350,18 @@ struct CompletedHikeDetailView: View {
                             label: "Ontmoetingen",
                             count: hike.meetingCount
                         )
+                    }
+
+                    if !hike.notes.isEmpty {
+                        Divider()
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Bijzondere observaties")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Text(hike.notes)
+                                .font(.body)
+                        }
                     }
                 }
             }
@@ -499,40 +497,80 @@ struct CompletedAudioRow: View {
     let recording: AudioMedia
     let audioRecorder: AudioRecorderService
 
-    private var isPlaying: Bool {
-        audioRecorder.playingURL == recording.temporaryFileURL
+    @State private var isCurrentlyPlaying = false
+    @State private var playbackProgress: Double = 0
+    @State private var playbackTimer: Timer?
+
+    var isPlaying: Bool {
+        isCurrentlyPlaying && audioRecorder.isPlaying && audioRecorder.playingURL == recording.temporaryFileURL
     }
 
     var body: some View {
         CardView {
-            HStack {
-                Image(systemName: "waveform")
-                    .font(.title2)
-                    .foregroundColor(HDColors.forestGreen)
+            VStack(spacing: 0) {
+                HStack {
+                    Image(systemName: "waveform")
+                        .font(.title2)
+                        .foregroundColor(HDColors.forestGreen)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(recording.name)
-                        .font(.headline)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(recording.name)
+                            .font(.headline)
 
-                    Text(formattedTimestamp(recording.createdAt))
-                        .font(.caption)
+                        Text(formattedTimestamp(recording.createdAt))
+                            .font(.caption)
+                            .foregroundColor(HDColors.mutedGreen)
+                    }
+
+                    Spacer()
+
+                    Text(recording.formattedDuration)
+                        .font(.subheadline)
                         .foregroundColor(HDColors.mutedGreen)
+
+                    Button(action: {
+                        togglePlayback()
+                    }) {
+                        Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
+                            .font(.title)
+                            .foregroundColor(HDColors.forestGreen)
+                    }
                 }
 
-                Spacer()
+                // Playback progress bar (shown when playing)
+                if isPlaying {
+                    HStack(spacing: HDSpacing.xs) {
+                        Text(formattedDuration(playbackProgress * recording.duration))
+                            .font(.caption.monospacedDigit())
+                            .foregroundColor(HDColors.mutedGreen)
+                            .frame(width: 36, alignment: .leading)
 
-                Text(recording.formattedDuration)
-                    .font(.subheadline)
-                    .foregroundColor(HDColors.mutedGreen)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(HDColors.sageGreen.opacity(0.3))
+                                    .frame(height: 4)
 
-                Button(action: {
-                    togglePlayback()
-                }) {
-                    Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
-                        .font(.title)
-                        .foregroundColor(HDColors.forestGreen)
+                                Capsule()
+                                    .fill(HDColors.forestGreen)
+                                    .frame(width: geo.size.width * playbackProgress, height: 4)
+                            }
+                        }
+                        .frame(height: 4)
+
+                        Text(recording.formattedDuration)
+                            .font(.caption.monospacedDigit())
+                            .foregroundColor(HDColors.mutedGreen)
+                            .frame(width: 36, alignment: .trailing)
+                    }
+                    .padding(.top, HDSpacing.xs)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
+            .animation(.easeInOut(duration: 0.2), value: isPlaying)
+        }
+        .onDisappear {
+            stopPlaybackTimer()
         }
     }
 
@@ -543,15 +581,49 @@ struct CompletedAudioRow: View {
 
         if isPlaying {
             audioRecorder.stopPlaying()
+            isCurrentlyPlaying = false
+            stopPlaybackTimer()
+            playbackProgress = 0
         } else {
+            if audioRecorder.isPlaying {
+                audioRecorder.stopPlaying()
+            }
+
             audioRecorder.play(url: url)
+            isCurrentlyPlaying = true
+            playbackProgress = 0
+            startPlaybackTimer()
         }
+    }
+
+    private func startPlaybackTimer() {
+        playbackTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            if audioRecorder.isPlaying && audioRecorder.playingURL == recording.temporaryFileURL {
+                let currentTime = audioRecorder.playbackCurrentTime
+                playbackProgress = min(1.0, currentTime / recording.duration)
+            } else {
+                isCurrentlyPlaying = false
+                stopPlaybackTimer()
+                playbackProgress = 0
+            }
+        }
+    }
+
+    private func stopPlaybackTimer() {
+        playbackTimer?.invalidate()
+        playbackTimer = nil
     }
 
     private func formattedTimestamp(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
+    }
+
+    private func formattedDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }
 

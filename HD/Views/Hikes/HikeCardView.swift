@@ -134,7 +134,8 @@ struct HikeCardView: View {
                         Label(locationText(start: startLocation, end: hike.endLocationName), systemImage: "mappin.circle.fill")
                             .font(.subheadline)
                             .foregroundColor(HDColors.mutedGreen)
-                            .lineLimit(1)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.85)
                     }
 
                     // Companions

@@ -35,7 +35,7 @@ struct SplashView: View {
                 Spacer().frame(height: 28)
 
                 Text("Wandeldagboek")
-                    .font(.custom("Georgia-Bold", size: 26))
+                    .font(.custom(HDTypography.handwrittenFont, size: HDTypography.splashTitleSize))
                     .foregroundColor(HDColors.forestGreen)
                     .opacity(showTitle ? 1 : 0)
 

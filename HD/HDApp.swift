@@ -88,7 +88,7 @@ struct HDApp: App {
     private static func seedDefaultData(context: ModelContext) {
         let defaultTypes: [(name: String, iconName: String, sortOrder: Int)] = [
             ("Boswandeling", "tree", 0),
-            ("LAW-route", "signpost.right", 1),
+            ("LAW", "signpost.right", 1),
             ("Blokje om", "arrow.triangle.turn.up.right.circle", 2),
             ("Stadswandeling", "building.2", 3),
             ("Klompenpad", "shoe.2", 4),

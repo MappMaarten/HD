@@ -48,7 +48,7 @@ struct HikeTypeSelector: View {
             .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NoHighlightButtonStyle())
         .sheet(isPresented: $showSheet) {
             HikeTypeSelectorSheet(
                 types: types,
@@ -104,16 +104,7 @@ private struct HikeTypeSelectorSheet: View {
     private func typeRow(_ type: HikeType) -> some View {
         let isSelected = selectedType?.id == type.id
 
-        return Button {
-            withAnimation(.spring(response: 0.3)) {
-                selectedType = type
-            }
-            // Slight delay before dismissing for better UX
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                isPresented = false
-            }
-        } label: {
-            HStack(spacing: HDSpacing.sm) {
+        return HStack(spacing: HDSpacing.sm) {
                 // Colored vertical accent bar
                 Rectangle()
                     .fill(type.displayColor)
@@ -142,8 +133,20 @@ private struct HikeTypeSelectorSheet: View {
             .padding(.vertical, HDSpacing.md)
             .background(isSelected ? type.displayColor.opacity(0.08) : Color.clear)
             .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+            .onTapGesture {
+                withAnimation(.spring(response: 0.3)) {
+                    selectedType = type
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    isPresented = false
+                }
+            }
+    }
+}
+
+private struct NoHighlightButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
     }
 }
 

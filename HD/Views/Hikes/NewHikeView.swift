@@ -53,6 +53,8 @@ struct NewHikeView: View {
                         .padding(.top, HDSpacing.md)
                         .padding(.bottom, HDSpacing.lg)
                     }
+                    .scrollDismissesKeyboard(.interactively)
+                    .keyboardAdaptive(tabBarHeight: 0)
 
                     // Sticky bottom button
                     stickyButton
@@ -69,6 +71,16 @@ struct NewHikeView: View {
                     }
                     .fontWeight(.semibold)
                     .foregroundColor(HDColors.forestGreen)
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button {
+                        hideKeyboard()
+                    } label: {
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(HDColors.forestGreen)
+                            .fontWeight(.semibold)
+                    }
                 }
             }
         }
@@ -295,7 +307,7 @@ struct NewHikeView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "info.circle")
                         .font(.caption2)
-                    Text("Tik op \(Image(systemName: "location.fill")) om je huidige locatie op te halen en toe te voegen aan je kaart")
+                    Text("Tik op \(Image(systemName: "location.fill")) om de wandeling aan je wandelkaart toe te voegen")
                         .font(.caption)
                 }
                 .foregroundColor(HDColors.mutedGreen.opacity(0.8))
@@ -323,6 +335,13 @@ struct NewHikeView: View {
     }
 
     // MARK: - Actions
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil, from: nil, for: nil
+        )
+    }
 
     private func startHike() {
         guard appState.activeHikeID == nil else {

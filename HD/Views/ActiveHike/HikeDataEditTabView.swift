@@ -209,7 +209,7 @@ struct HikeDataEditTabView: View {
 
                         FormSection(title: "Hoe voel je je nu?", icon: "heart") {
                             VStack(spacing: HDSpacing.md) {
-                                NatureMoodSlider(value: $endMood)
+                                NatureMoodSlider(value: $endMood, context: .post)
                                     .onChange(of: endMood) { _, newValue in
                                         viewModel.hike.endMood = Int(newValue)
                                         viewModel.hike.updatedAt = Date()
@@ -227,6 +227,7 @@ struct HikeDataEditTabView: View {
                     .padding(.bottom, HDSpacing.lg)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .keyboardAdaptive()
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(HDColors.cream, for: .navigationBar)
@@ -496,6 +497,7 @@ struct HikeDataEditTabView: View {
                     .foregroundColor(HDColors.mutedGreen.opacity(0.7))
                     .padding(.horizontal, 4)
                     .padding(.vertical, 8)
+                    .allowsHitTesting(false)
             }
 
             TextEditor(text: $reflection)

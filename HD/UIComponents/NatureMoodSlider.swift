@@ -8,32 +8,74 @@
 import SwiftUI
 
 struct NatureMoodSlider: View {
+    enum MoodContext {
+        case pre
+        case post
+    }
+
     @Binding var value: Double
+    var context: MoodContext = .pre
 
     private var moodData: (label: String, description: String) {
+        switch context {
+        case .pre:
+            return preMoodData
+        case .post:
+            return postMoodData
+        }
+    }
+
+    private var preMoodData: (label: String, description: String) {
         switch Int(value) {
         case 1:
             return ("Verkrampt", "Mijn lichaam voelt zwaar en mijn gedachten zitten vast.")
         case 2:
             return ("Gespannen", "Mijn schouders en adem houden spanning vast.")
         case 3:
-            return ("Afgevlakt", "Ik voel weinig energie of kleur.")
+            return ("Mat", "Ik voel weinig energie of levendigheid.")
         case 4:
-            return ("Zoekend", "Ik ben nog niet in mijn ritme.")
+            return ("Onrustig", "Ik zoek nog naar rust in mezelf.")
         case 5:
-            return ("Stil", "Alles is in rust, zonder duidelijke lading.")
+            return ("Neutraal", "Alles is rustig, zonder duidelijke lading.")
         case 6:
-            return ("Losser", "Mijn lichaam begint mee te bewegen.")
+            return ("Wakker", "Ik voel iets bewegen in mijn lijf.")
         case 7:
-            return ("In pas", "Ik loop ontspannen en in mijn eigen tempo.")
+            return ("Helder", "Mijn gedachten zijn rustig, mijn lijf is aanwezig.")
         case 8:
-            return ("Lichtvoetig", "Bewegen gaat makkelijk en voelt fijn.")
+            return ("Licht", "Ik voel me soepel en vrij.")
         case 9:
-            return ("Krachtig", "Ik voel energie door mijn lijf stromen.")
+            return ("Vol energie", "Ik heb zin om te bewegen.")
         case 10:
-            return ("Verbonden", "Ik voel me één met mijn lichaam en omgeving.")
+            return ("Stralend", "Ik voel me sterk en vol leven.")
         default:
-            return ("Stil", "Alles is in rust, zonder duidelijke lading.")
+            return ("Neutraal", "Alles is rustig, zonder duidelijke lading.")
+        }
+    }
+
+    private var postMoodData: (label: String, description: String) {
+        switch Int(value) {
+        case 1:
+            return ("Moe", "De wandeling was zwaar, ik voel me uitgeput.")
+        case 2:
+            return ("Stijf", "Mijn lijf voelt nog gespannen aan.")
+        case 3:
+            return ("Vlak", "De wandeling heeft weinig veranderd.")
+        case 4:
+            return ("Iets rustiger", "Ik voel een klein verschil.")
+        case 5:
+            return ("Kalm", "De wandeling bracht rust.")
+        case 6:
+            return ("Losser", "Mijn lichaam is ontspannen.")
+        case 7:
+            return ("In balans", "Ik voel me aangenaam op mijn plek.")
+        case 8:
+            return ("Lichtvoetig", "Bewegen heeft me goed gedaan.")
+        case 9:
+            return ("Energiek", "Ik voel nieuwe kracht.")
+        case 10:
+            return ("Helemaal goed", "Ik voel me verbonden en vol leven.")
+        default:
+            return ("Kalm", "De wandeling bracht rust.")
         }
     }
 

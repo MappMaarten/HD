@@ -129,7 +129,7 @@ struct StoryTabView: View {
                     .foregroundColor(HDColors.forestGreen)
                     .lineSpacing(4)
                     .scrollContentBackground(.hidden)
-                    .scrollDismissesKeyboard(.never)
+                    .scrollDismissesKeyboard(.interactively)
                     .padding(.leading, HDSpacing.sm)
                     .padding(.trailing, 4)
                     .padding(.top, HDSpacing.xs)

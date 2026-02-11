@@ -290,7 +290,7 @@ class SampleDataService {
             SampleHikeData(
                 id: UUID(),
                 createdAt: daysAgo(50),
-                name: "Pieterpad Etappe 1",
+                name: "Pieterpad",
                 type: "LAW",
                 companions: "Lisa, Tom, Sophie",
                 startLatitude: 53.3400,
@@ -333,7 +333,7 @@ class SampleDataService {
             SampleHikeData(
                 id: UUID(),
                 createdAt: daysAgo(49),
-                name: "Pieterpad Etappe 2",
+                name: "Pieterpad",
                 type: "LAW",
                 companions: "Lisa, Tom, Sophie",
                 startLatitude: 53.3258,
@@ -375,7 +375,7 @@ class SampleDataService {
             SampleHikeData(
                 id: UUID(),
                 createdAt: daysAgo(48),
-                name: "Pieterpad Etappe 3",
+                name: "Pieterpad",
                 type: "LAW",
                 companions: "Lisa, Tom, Sophie",
                 startLatitude: 53.2194,

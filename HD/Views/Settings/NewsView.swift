@@ -15,8 +15,12 @@ struct NewsView: View {
                 titleSection
 
                 ScrollView {
-                    descriptionSection
-                        .padding(.horizontal, HDSpacing.horizontalMargin)
+                    VStack(spacing: HDSpacing.md) {
+                        descriptionSection
+                        tipsSection
+                    }
+                    .padding(.horizontal, HDSpacing.horizontalMargin)
+                    .padding(.bottom, HDSpacing.lg)
                 }
             }
         }
@@ -53,6 +57,54 @@ struct NewsView: View {
         .padding(.horizontal, HDSpacing.horizontalMargin)
         .padding(.top, HDSpacing.md)
         .padding(.bottom, HDSpacing.sm)
+    }
+
+    // MARK: - Tips Section
+
+    private var tipsSection: some View {
+        FormSection(title: "Tips & tricks", icon: "lightbulb") {
+            VStack(spacing: 0) {
+                tipRow(icon: "bolt.fill", title: "Snelle acties", description: "Gebruik de knoppen boven je verhaal om automatisch een tijdstempel en teller toe te voegen.")
+
+                Divider()
+
+                tipRow(icon: "location.fill", title: "GPS-locatie", description: "Sla je GPS-locatie op bij start en einde, dan verschijnt je wandeling op de kaart.")
+
+                Divider()
+
+                tipRow(icon: "camera.fill", title: "Fotoverhaal", description: "Kies bewust 5 foto's die samen het verhaal van je wandeling vertellen.")
+
+                Divider()
+
+                tipRow(icon: "heart.fill", title: "Stemmingsmeter", description: "De stemmingsmeter meet hoe je lichaam zich voelt — vergelijk voor en na je wandeling.")
+
+                Divider()
+
+                tipRow(icon: "mic.fill", title: "Audio-opnames", description: "Neem geluiden of gedachten op onderweg. Ideaal als velddagboek.")
+            }
+        }
+    }
+
+    private func tipRow(icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(HDColors.forestGreen)
+                .frame(width: 24)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(HDColors.forestGreen)
+
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundColor(HDColors.mutedGreen)
+                    .lineSpacing(3)
+            }
+        }
+        .padding(.vertical, 8)
     }
 
     // MARK: - Description Section
