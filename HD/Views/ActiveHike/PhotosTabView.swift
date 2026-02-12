@@ -14,7 +14,7 @@ struct PhotosTabView: View {
     @State private var photoToDelete: PhotoMedia?
     @State private var showCameraPermissionAlert = false
 
-    private let maxPhotos = 5
+    private let maxPhotos = 6
 
     var photos: [PhotoMedia] {
         (viewModel.hike.photos ?? []).sorted { $0.sortOrder < $1.sortOrder }
@@ -122,7 +122,7 @@ struct PhotosTabView: View {
                     .font(.headline)
                     .foregroundColor(HDColors.forestGreen)
 
-                Text("Kies 5 foto's die het beste het verhaal van je wandeling vertellen")
+                Text("Kies 6 foto's die het beste het verhaal van je wandeling vertellen")
                     .font(.subheadline)
                     .foregroundColor(HDColors.mutedGreen)
                     .multilineTextAlignment(.center)

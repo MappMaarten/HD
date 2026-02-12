@@ -11,7 +11,6 @@ import SwiftUI
 
 struct OnboardingPage {
     let icon: String
-    let subtitle: String
     let title: String
     let text: String
     let accentColor: Color
@@ -22,49 +21,42 @@ struct OnboardingPage {
 private let onboardingPages: [OnboardingPage] = [
     OnboardingPage(
         icon: "figure.walk",
-        subtitle: "Verhalen, geen stappen",
         title: "Welkom in jouw Wandeldagboek",
         text: "Dit is geen sportapp, maar een persoonlijk dagboek dat je vult terwijl je loopt. Het gaat om beleving, niet om prestaties.",
         accentColor: HDColors.forestGreen
     ),
     OnboardingPage(
         icon: "eye",
-        subtitle: "Kleine momenten, grote indruk",
         title: "Leg vast wat je ziet",
         text: "Een vogel die je verrast. Een lichtval die je raakt. Leg indrukken vast met foto's, korte notities of symbolen.",
         accentColor: HDColors.forestGreen
     ),
     OnboardingPage(
         icon: "heart.fill",
-        subtitle: "Van spanning naar rust",
         title: "Sta stil bij hoe je je voelt",
         text: "Check in bij jezelf voor en na je wandeling. Energie, spanning, stemming—hoe voel je je?",
         accentColor: HDColors.amber
     ),
     OnboardingPage(
         icon: "book.fill",
-        subtitle: "Bewaar wat je beleeft",
         title: "Verbind je gedachten",
         text: "Wat zie je? Wie spreek je? Waar stop je? Leg je wandeldag vast zoals een logboek. Lees later terug wat je beleefde.",
         accentColor: HDColors.forestGreen
     ),
     OnboardingPage(
         icon: "map.fill",
-        subtitle: "Jouw persoonlijke wandelkaart",
         title: "Zie waar je geweest bent",
         text: "Elke wandeling verschijnt als een marker op de kaart. Ontdek je eigen wandelgeschiedenis.",
         accentColor: HDColors.hikeTypeBeach
     ),
     OnboardingPage(
         icon: "bell.fill",
-        subtitle: "Zachte herinneringen, geen druk",
         title: "Blijf verbonden met je ritueel",
         text: "Vriendelijke herinneringen tijdens je wandeling en motivatie om regelmatig te wandelen.",
         accentColor: HDColors.amber
     ),
     OnboardingPage(
         icon: "figure.hiking",
-        subtitle: "Geen doelen, alleen aanwezigheid",
         title: "Jouw tempo, jouw verhaal",
         text: "Dit is je persoonlijke ruimte. Wandel wanneer je wilt, schrijf wat je wilt. Voor jou.",
         accentColor: HDColors.forestGreen
@@ -186,7 +178,7 @@ struct OnboardingCircularView: View {
 
             // Decorative floating icons
             ForEach(decorativeIcons) { decorIcon in
-                let radius = size / 2 + 20
+                let radius = size / 2 - 15
                 let radians = decorIcon.angle * .pi / 180
 
                 Image(systemName: decorIcon.icon)
@@ -216,7 +208,6 @@ struct OnboardingPageView: View {
     let pageIndex: Int
 
     @State private var showIcon = false
-    @State private var showSubtitle = false
     @State private var showTitle = false
     @State private var showText = false
 
@@ -243,15 +234,6 @@ struct OnboardingPageView: View {
             .opacity(showIcon ? 1 : 0)
 
             Spacer().frame(height: 28)
-
-            // Subtitle - colored accent text
-            Text(page.subtitle)
-                .font(.custom("Georgia-Bold", size: 17))
-                .foregroundColor(page.accentColor)
-                .multilineTextAlignment(.center)
-                .opacity(showSubtitle ? 1 : 0)
-
-            Spacer().frame(height: 12)
 
             // Title - large bold serif
             Text(page.title)
@@ -296,7 +278,6 @@ struct OnboardingPageView: View {
 
     private func animateEntrance() {
         showIcon = false
-        showSubtitle = false
         showTitle = false
         showText = false
 
@@ -304,15 +285,11 @@ struct OnboardingPageView: View {
             showIcon = true
         }
 
-        withAnimation(.easeOut(duration: 0.3).delay(0.35)) {
-            showSubtitle = true
-        }
-
-        withAnimation(.easeOut(duration: 0.4).delay(0.45)) {
+        withAnimation(.easeOut(duration: 0.4).delay(0.3)) {
             showTitle = true
         }
 
-        withAnimation(.easeOut(duration: 0.4).delay(0.55)) {
+        withAnimation(.easeOut(duration: 0.4).delay(0.45)) {
             showText = true
         }
     }

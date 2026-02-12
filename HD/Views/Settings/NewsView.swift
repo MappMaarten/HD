@@ -68,11 +68,11 @@ struct NewsView: View {
 
                 Divider()
 
-                tipRow(icon: "location.fill", title: "GPS-locatie", description: "Sla je GPS-locatie op bij start en einde, dan verschijnt je wandeling op de kaart.")
+                tipRow(icon: "location.fill", title: "GPS-locatie", description: "Sla je GPS-locatie op bij de start, dan verschijnt je wandeling op de kaart. Zo krijg je een mooi overzicht van plekken waar je hebt gewandeld.")
 
                 Divider()
 
-                tipRow(icon: "camera.fill", title: "Fotoverhaal", description: "Kies bewust 5 foto's die samen het verhaal van je wandeling vertellen.")
+                tipRow(icon: "camera.fill", title: "Fotoverhaal", description: "Kies bewust 6 foto's die samen het verhaal van je wandeling vertellen.")
 
                 Divider()
 
@@ -86,23 +86,23 @@ struct NewsView: View {
     }
 
     private func tipRow(icon: String, title: String, description: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(HDColors.forestGreen)
+
+            Text(description)
+                .font(.system(size: 13))
+                .foregroundColor(HDColors.mutedGreen)
+                .lineSpacing(3)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.leading, 40)
+        .overlay(alignment: .topLeading) {
             Image(systemName: icon)
                 .font(.system(size: 16))
                 .foregroundColor(HDColors.forestGreen)
-                .frame(width: 24)
-                .padding(.top, 2)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(HDColors.forestGreen)
-
-                Text(description)
-                    .font(.system(size: 13))
-                    .foregroundColor(HDColors.mutedGreen)
-                    .lineSpacing(3)
-            }
+                .frame(width: 28, alignment: .center)
         }
         .padding(.vertical, 8)
     }

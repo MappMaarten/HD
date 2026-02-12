@@ -296,7 +296,7 @@
 				INFOPLIST_FILE = HD/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Wandeldagboek;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Wandeldagboek gebruikt de camera zodat je tijdens je wandeling foto’s kunt maken die je beleving vastleggen.    ";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie om start- en eindpunten van je wandelingen vast te leggen en routes te ondersteunen.\n    ";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie om start- en eindpunten van je wandelingen vast te leggen.   ";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie tijdens het gebruik van de app om je wandelingen correct te registreren.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Wandeldagboek gebruikt de microfoon zodat je tijdens of na je wandeling audioverhalen en herinneringen kunt opnemen.\n    ";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "\n    Wandeldagboek slaat foto’s op in je fotobibliotheek wanneer je nieuwe beelden maakt of toevoegt aan een wandeling.\n    ";
@@ -343,7 +343,7 @@
 				INFOPLIST_FILE = HD/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Wandeldagboek;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Wandeldagboek gebruikt de camera zodat je tijdens je wandeling foto’s kunt maken die je beleving vastleggen.    ";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie om start- en eindpunten van je wandelingen vast te leggen en routes te ondersteunen.\n    ";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie om start- en eindpunten van je wandelingen vast te leggen.   ";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wandeldagboek gebruikt je locatie tijdens het gebruik van de app om je wandelingen correct te registreren.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Wandeldagboek gebruikt de microfoon zodat je tijdens of na je wandeling audioverhalen en herinneringen kunt opnemen.\n    ";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "\n    Wandeldagboek slaat foto’s op in je fotobibliotheek wanneer je nieuwe beelden maakt of toevoegt aan een wandeling.\n    ";

@@ -49,8 +49,8 @@ struct CircularIconView: View {
                 .fill(
                     RadialGradient(
                         gradient: Gradient(colors: [
-                            ringColor.opacity(0.35),
-                            ringColor.opacity(0.18)
+                            ringColor.opacity(0.18),
+                            ringColor.opacity(0.08)
                         ]),
                         center: .center,
                         startRadius: 0,
@@ -62,7 +62,7 @@ struct CircularIconView: View {
 
             // Inner circle (fades in last)
             Circle()
-                .fill(ringColor)
+                .fill(ringColor.opacity(0.35))
                 .frame(width: innerCircleSize, height: innerCircleSize)
                 .opacity(ring3Opacity)
 

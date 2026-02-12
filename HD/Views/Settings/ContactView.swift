@@ -5,6 +5,7 @@ struct ContactView: View {
     @Environment(\.openURL) private var openURL
 
     private let feedbackURL = URL(string: "https://www.wandeldagboek.app/feedback")!
+    private let instagramURL = URL(string: "https://www.instagram.com/wandeldagboek.app")!
 
     private let contactReasons: [(icon: String, text: String)] = [
         ("lightbulb", "Ideeën voor nieuwe functies"),
@@ -65,6 +66,15 @@ struct ContactView: View {
     // MARK: - Content Section
 
     private var contentSection: some View {
+        VStack(spacing: HDSpacing.md) {
+            contactSection
+            instagramSection
+        }
+    }
+
+    // MARK: - Contact Section
+
+    private var contactSection: some View {
         FormSection(title: "Neem contact op", icon: "envelope") {
             Text("Heb je vragen, suggesties of wil je samenwerken? Ik hoor graag van je!")
                 .font(.system(size: 14))
@@ -99,6 +109,33 @@ struct ContactView: View {
                         .foregroundColor(HDColors.forestGreen)
                     Spacer()
                     Image(systemName: "paperplane")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(HDColors.mutedGreen)
+                }
+            }
+        }
+    }
+
+    // MARK: - Instagram Section
+
+    private var instagramSection: some View {
+        FormSection(title: "Volg ons", icon: "person.2") {
+            Text("Volg Wandeldagboek op Instagram voor updates, tips en mooie wandelfoto's!")
+                .font(.system(size: 14))
+                .foregroundColor(HDColors.forestGreen)
+                .lineSpacing(4)
+
+            Divider()
+
+            Button {
+                openURL(instagramURL)
+            } label: {
+                HStack {
+                    Text("Volg ons op Instagram")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(HDColors.forestGreen)
+                    Spacer()
+                    Image(systemName: "link")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(HDColors.mutedGreen)
                 }

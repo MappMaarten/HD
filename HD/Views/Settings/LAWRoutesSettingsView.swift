@@ -23,11 +23,7 @@ struct LAWRoutesSettingsView: View {
                 titleSection
                 explanationSection
 
-                if lawRoutes.isEmpty {
-                    emptyState
-                } else {
-                    routesContent
-                }
+                routesContent
             }
         }
         .navigationBarHidden(true)
@@ -80,26 +76,6 @@ struct LAWRoutesSettingsView: View {
         }
         .padding(.horizontal, HDSpacing.horizontalMargin)
         .padding(.bottom, HDSpacing.md)
-    }
-
-    // MARK: - Empty State
-
-    private var emptyState: some View {
-        ScrollView {
-            VStack(spacing: HDSpacing.lg) {
-                addRouteSection
-
-                EmptyStateView(
-                    icon: "signpost.right",
-                    title: "Geen LAW Routes",
-                    message: "Voeg je favoriete langeafstandswandelingen toe om je voortgang bij te houden.",
-                    actionTitle: nil,
-                    action: nil
-                )
-            }
-            .padding(.horizontal, HDSpacing.horizontalMargin)
-            .padding(.bottom, HDSpacing.lg)
-        }
     }
 
     // MARK: - Routes Content

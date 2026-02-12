@@ -15,6 +15,7 @@ final class NewHikeViewModel {
     // LAW route fields
     var selectedLAWRoute: LAWRoute?
     var lawStageNumber: Int = 1
+    var hasStageSuggestion: Bool = false
 
     // Validation
     var nameError: String?
@@ -69,6 +70,20 @@ final class NewHikeViewModel {
             // For regular hikes: clear any auto-filled name
             // User must explicitly type their hike name
             name = ""
+        }
+    }
+
+    func suggestNextStage(for route: LAWRoute, completedHikes: [Hike]) {
+        let completedStages = completedHikes
+            .filter { $0.lawRouteName == route.name && $0.status == "completed" }
+            .compactMap { $0.lawStageNumber }
+
+        if let maxStage = completedStages.max() {
+            lawStageNumber = min(maxStage + 1, route.stagesCount)
+            hasStageSuggestion = true
+        } else {
+            lawStageNumber = 1
+            hasStageSuggestion = false
         }
     }
 

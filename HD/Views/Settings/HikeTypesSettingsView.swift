@@ -17,12 +17,12 @@ struct HikeTypesSettingsView: View {
     @State private var expandedTypeIDs: Set<PersistentIdentifier> = []
 
     private let availableIcons = [
-        "figure.walk", "figure.hiking", "sun.max", "calendar",
+        "figure.walk", "figure.hiking", "sun.max",
         "building.2", "tree", "mountain.2", "beach.umbrella",
-        "signpost.right", "map", "location", "flag",
-        "leaf", "cloud.sun", "tent", "binoculars",
-        "dog", "camera",
-        "arrow.triangle.turn.up.right.circle", "shoe.2"
+        "signpost.right", "map", "leaf", "tent",
+        "binoculars", "dog", "camera",
+        "arrow.triangle.turn.up.right.circle", "shoe.2",
+        "water.waves", "snowflake"
     ]
 
     var body: some View {

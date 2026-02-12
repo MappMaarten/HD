@@ -36,8 +36,8 @@ struct OnboardingPageConfig {
             return OnboardingPageConfig(
                 iconSize: 220,
                 decorativeIcons: [
-                    DecorativeIconConfig(icon: "sun.max", angle: 45),
-                    DecorativeIconConfig(icon: "leaf", angle: 225)
+                    DecorativeIconConfig(icon: "sun.max.fill", angle: 45),
+                    DecorativeIconConfig(icon: "leaf.fill", angle: 225)
                 ],
                 specialAnimation: .pulse
             )
@@ -45,7 +45,7 @@ struct OnboardingPageConfig {
             return OnboardingPageConfig(
                 iconSize: 220,
                 decorativeIcons: [
-                    DecorativeIconConfig(icon: "camera", angle: 45),
+                    DecorativeIconConfig(icon: "camera.fill", angle: 45),
                     DecorativeIconConfig(icon: "sparkles", angle: 225)
                 ],
                 specialAnimation: .breathing
@@ -55,7 +55,7 @@ struct OnboardingPageConfig {
                 iconSize: 220,
                 decorativeIcons: [
                     DecorativeIconConfig(icon: "wind", angle: 45),
-                    DecorativeIconConfig(icon: "heart", angle: 225)
+                    DecorativeIconConfig(icon: "heart.fill", angle: 225)
                 ],
                 specialAnimation: .breathing
             )
@@ -64,7 +64,7 @@ struct OnboardingPageConfig {
                 iconSize: 220,
                 decorativeIcons: [
                     DecorativeIconConfig(icon: "sparkle", angle: 45),
-                    DecorativeIconConfig(icon: "text.bubble", angle: 225)
+                    DecorativeIconConfig(icon: "text.bubble.fill", angle: 225)
                 ],
                 specialAnimation: .breathing
             )
@@ -72,8 +72,8 @@ struct OnboardingPageConfig {
             return OnboardingPageConfig(
                 iconSize: 220,
                 decorativeIcons: [
-                    DecorativeIconConfig(icon: "globe", angle: 45),
-                    DecorativeIconConfig(icon: "location", angle: 225)
+                    DecorativeIconConfig(icon: "globe.americas.fill", angle: 45),
+                    DecorativeIconConfig(icon: "location.fill", angle: 225)
                 ],
                 specialAnimation: .pulse
             )
@@ -82,7 +82,7 @@ struct OnboardingPageConfig {
                 iconSize: 220,
                 decorativeIcons: [
                     DecorativeIconConfig(icon: "figure.walk", angle: 45),
-                    DecorativeIconConfig(icon: "heart", angle: 225)
+                    DecorativeIconConfig(icon: "heart.fill", angle: 225)
                 ],
                 specialAnimation: .sway
             )
@@ -91,7 +91,7 @@ struct OnboardingPageConfig {
                 iconSize: 220,
                 decorativeIcons: [
                     DecorativeIconConfig(icon: "book.fill", angle: 45),
-                    DecorativeIconConfig(icon: "arrow.triangle.turn.up.right.diamond", angle: 225)
+                    DecorativeIconConfig(icon: "arrow.triangle.turn.up.right.diamond.fill", angle: 225)
                 ],
                 specialAnimation: .pulse
             )

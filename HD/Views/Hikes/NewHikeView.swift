@@ -8,6 +8,7 @@ struct NewHikeView: View {
 
     @Query(sort: \HikeType.sortOrder) private var hikeTypes: [HikeType]
     @Query(sort: \LAWRoute.sortOrder) private var lawRoutes: [LAWRoute]
+    @Query(filter: #Predicate<Hike> { $0.status == "completed" }) private var completedHikes: [Hike]
 
     @State private var viewModel = NewHikeViewModel()
 
@@ -151,8 +152,11 @@ struct NewHikeView: View {
                         routes: lawRoutes,
                         selectedRoute: $viewModel.selectedLAWRoute
                     )
-                    .onChange(of: viewModel.selectedLAWRoute) { _, _ in
+                    .onChange(of: viewModel.selectedLAWRoute) { _, newRoute in
                         viewModel.updateNameFromType()
+                        if let route = newRoute {
+                            viewModel.suggestNextStage(for: route, completedHikes: completedHikes)
+                        }
                     }
                 }
             }
@@ -170,6 +174,7 @@ struct NewHikeView: View {
                             Button {
                                 if viewModel.lawStageNumber > 1 {
                                     viewModel.lawStageNumber -= 1
+                                    viewModel.hasStageSuggestion = false
                                     viewModel.updateNameFromType()
                                 }
                             } label: {
@@ -188,6 +193,7 @@ struct NewHikeView: View {
                             Button {
                                 if viewModel.lawStageNumber < selectedRoute.stagesCount {
                                     viewModel.lawStageNumber += 1
+                                    viewModel.hasStageSuggestion = false
                                     viewModel.updateNameFromType()
                                 }
                             } label: {
@@ -211,6 +217,12 @@ struct NewHikeView: View {
 
                         Spacer()
                     }
+
+                    if viewModel.hasStageSuggestion {
+                        Text("Voorgesteld op basis van je vorige wandelingen")
+                            .font(.caption)
+                            .foregroundColor(HDColors.mutedGreen)
+                    }
                 }
             }
         }
@@ -220,40 +232,9 @@ struct NewHikeView: View {
 
     private var detailsContent: some View {
         VStack(spacing: HDSpacing.md) {
-            // Name field - conditional rendering based on LAW route
-            VStack(alignment: .leading, spacing: HDSpacing.xs) {
-                if viewModel.isLAWRoute {
-                    // LAW route: Show name as read-only text
-                    VStack(alignment: .leading, spacing: HDSpacing.xs) {
-                        Text("Naam van je wandeling")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(HDColors.forestGreen)
-
-                        HStack(spacing: HDSpacing.sm) {
-                            Image(systemName: "lock.fill")
-                                .foregroundColor(HDColors.mutedGreen)
-                                .font(.subheadline)
-                                .frame(width: 20)
-
-                            Text(viewModel.name)
-                                .foregroundColor(HDColors.forestGreen)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .padding(.horizontal, HDSpacing.md)
-                        .padding(.vertical, HDSpacing.sm + 2)
-                        .background(Color.white.opacity(0.3))
-                        .cornerRadius(HDSpacing.cornerRadiusSmall)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: HDSpacing.cornerRadiusSmall)
-                                .stroke(HDColors.dividerColor.opacity(0.2), lineWidth: 1)
-                        )
-
-                        Text("Naam wordt automatisch overgenomen van de geselecteerde LAW-route")
-                            .font(.caption)
-                            .foregroundColor(HDColors.mutedGreen)
-                    }
-                } else {
-                    // Regular hike: Show editable text field
+            // Name field - only for regular hikes
+            if !viewModel.isLAWRoute {
+                VStack(alignment: .leading, spacing: HDSpacing.xs) {
                     HDTextField(
                         "Naam van je wandeling",
                         text: $viewModel.name

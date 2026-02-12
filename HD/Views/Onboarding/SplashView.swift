@@ -25,22 +25,28 @@ struct SplashView: View {
                     size: 220,
                     decorativeIcons: [
                         DecorativeIconConfig(icon: "book.fill", angle: 45),
-                        DecorativeIconConfig(icon: "arrow.triangle.turn.up.right.diamond", angle: 225)
+                        DecorativeIconConfig(icon: "arrow.triangle.turn.up.right.diamond.fill", angle: 225)
                     ],
                     accentColor: HDColors.forestGreen
                 )
                 .modifier(SpecialIconAnimation(type: .pulse))
                 .opacity(showIcon ? 1 : 0)
 
-                Spacer().frame(height: 28)
+                Spacer().frame(height: 20)
 
                 Text("Wandeldagboek")
                     .font(.custom(HDTypography.handwrittenFont, size: HDTypography.splashTitleSize))
                     .foregroundColor(HDColors.forestGreen)
                     .opacity(showTitle ? 1 : 0)
 
+                Text("Verhalen, geen stappen")
+                    .font(.custom(HDTypography.subtitleFont, size: 15))
+                    .foregroundColor(HDColors.mutedGreen)
+                    .opacity(showTitle ? 1 : 0)
+                    .padding(.top, 4)
+
                 Spacer()
-                Spacer()
+                Spacer().frame(height: 60)
             }
         }
         .onAppear {

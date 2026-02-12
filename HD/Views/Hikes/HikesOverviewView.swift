@@ -118,7 +118,9 @@ struct HikesOverviewView: View {
 
                 VStack(spacing: 0) {
                     customHeader
-                    titleSection
+                    if !allHikes.isEmpty {
+                        titleSection
+                    }
 
                     if showFilterPanel {
                         filterPanel
@@ -175,9 +177,9 @@ struct HikesOverviewView: View {
         HStack {
             ListMapToggle(showMap: $showMap)
             Spacer()
-            CircularButton(icon: "gear") {
+            CircularButton(icon: "gear", action: {
                 showSettings = true
-            }
+            }, size: 36)
         }
         .padding(.horizontal, HDSpacing.horizontalMargin)
         .padding(.top, HDSpacing.md)
@@ -187,7 +189,7 @@ struct HikesOverviewView: View {
 
     private var titleSection: some View {
         HStack {
-            Text("Jouw wandelingen \u{00B7} \(allHikes.count)")
+            Text("Jouw wandelingen \u{00B7} \(filteredHikes.count)")
                 .hdHandwritten(size: 24)
             Spacer()
             Button {
@@ -254,13 +256,24 @@ struct HikesOverviewView: View {
     // MARK: - Empty States
 
     private var emptyState: some View {
-        VStack {
+        VStack(spacing: HDSpacing.md) {
             Spacer()
-            EmptyStateView(
+            OnboardingCircularView(
                 icon: "figure.hiking",
-                title: "Nog geen wandelingen",
-                message: "Start je eerste wandeling om je wandeldagboek te beginnen"
+                size: 180,
+                decorativeIcons: [
+                    DecorativeIconConfig(icon: "book.fill", angle: 45),
+                    DecorativeIconConfig(icon: "arrow.triangle.turn.up.right.diamond.fill", angle: 225)
+                ],
+                accentColor: HDColors.forestGreen
             )
+            Text("Nog geen wandelingen")
+                .hdHandwritten(size: 22)
+            Text("Start je eerste wandeling om je wandeldagboek te beginnen")
+                .hdBody()
+                .multilineTextAlignment(.center)
+                .foregroundColor(HDColors.mutedGreen)
+                .padding(.horizontal, HDSpacing.xl)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -9,7 +9,7 @@ import SwiftUI
 
 enum HDTypography {
     // MARK: - Font Names
-    static let titleFont = "Georgia-Bold"
+    static let titleFont = "Georgia-Italic"
     static let subtitleFont = "Georgia-Italic"
     static let handwrittenFont = "BradleyHandITCTT-Bold"
 

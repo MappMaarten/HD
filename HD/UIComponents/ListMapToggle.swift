@@ -24,8 +24,10 @@ struct ListMapToggle: View {
             }
         }
         .padding(4)
-        .background(HDColors.paleGreen)
+        .background(HDColors.sageGreen)
         .clipShape(Capsule())
+        .overlay(Capsule().stroke(HDColors.mutedGreen.opacity(0.3), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.08), radius: 4, y: 2)
     }
 
     private func toggleButton(icon: String, isSelected: Bool, action: @escaping () -> Void) -> some View {

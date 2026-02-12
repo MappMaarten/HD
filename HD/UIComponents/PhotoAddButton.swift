@@ -62,7 +62,7 @@ private struct PhotoAddButtonStyle: ButtonStyle {
         }
 
         VStack(spacing: HDSpacing.sm) {
-            Text("Disabled (5/5)")
+            Text("Disabled (6/6)")
                 .font(.caption)
                 .foregroundColor(HDColors.mutedGreen)
 
